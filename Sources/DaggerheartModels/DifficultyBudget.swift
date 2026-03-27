@@ -68,6 +68,12 @@ nonisolated public enum DifficultyBudget {
     public let totalCost: Int
     /// Budget minus cost. Negative means over-budget.
     public let remaining: Int
+
+    public init(budget: Int, totalCost: Int, remaining: Int) {
+      self.budget = budget
+      self.totalCost = totalCost
+      self.remaining = remaining
+    }
   }
 
   /// Compute the difficulty rating for an adversary roster against a player count.
