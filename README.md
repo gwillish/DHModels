@@ -1,20 +1,26 @@
 # DaggerheartModels
 
-Swift Package containing the model layer for Daggerheart encounter tools.
-Extracted from [gwillish/encounter](https://github.com/gwillish/encounter).
+This is a Swift Package built to support creating tools for the TTRPG Daggerheart.
+There's a great community growing that assembling standard ways to share details
+on players, adversaries, environments, and more in a JSON format.
 
-Documentation is hosted on the **Swift Package Index**:
-[swiftpackageindex.com/gwillish/DaggerheartModels](https://swiftpackageindex.com/gwillish/DaggerheartModels)
+This package provides type-safe models for the Swift programming language, and
+some validation and extensions on those models, including a JSONSchema
+declaration, to hopefully promote more cross app, language, and platform tool
+sharing.
+
+[Documentation for DaggerheartModels](https://swiftpackageindex.com/gwillish/DaggerheartModels/documentation/daggerheartmodels)
+is hosted on the **Swift Package Index**.
 
 ---
 
 ## What's inside
 
-### `DaggerheartModels` — Foundation-only, Linux-compatible
+### `DaggerheartModels` 
 
 Pure value types (structs and enums) that model Daggerheart catalog and encounter
 data. No UIKit, AppKit, Observation, or Apple-only frameworks — safe to use on
-Linux and in server-side Swift.
+Linux, server-side Swift, and hopefully Wasm as well.
 
 | Type | Purpose |
 |---|---|
@@ -69,12 +75,10 @@ Add `"$schema"` to your pack file to enable validation and autocomplete in VS Co
 
 ```json
 {
-  "$schema": "https://cdn.jsdelivr.net/gh/gwillish/DaggerheartModels@main/schemas/dhpack.schema.json",
+  "$schema": "https://cdn.jsdelivr.net/gh/gwillish/DaggerheartModels@0.1.1/schemas/dhpack.schema.json",
   "adversaries": [ ... ]
 }
 ```
-
-Pin to a release tag for stability (e.g. `@0.1.0` instead of `@main`).
 
 Use `validate-dhpack` to check a pack file against the decoder:
 
