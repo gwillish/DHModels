@@ -55,8 +55,8 @@ import Testing
     let compendium = Compendium(bundle: .main)
     compendium.addAdversary(
       Adversary(
-        id: "test-creature", name: "Test", tier: 1, type: .minion,
-        description: "desc", difficulty: 8, thresholdMajor: 3, thresholdSevere: 6,
+        id: "test-creature", name: "Test", tier: 1, role: .minion,
+        flavorText: "desc", difficulty: 8, thresholdMajor: 3, thresholdSevere: 6,
         hp: 3, stress: 2, attackModifier: "+1", attackName: "Bite",
         attackRange: .veryClose, damage: "1d6 phy"
       ))
@@ -71,8 +71,8 @@ import Testing
 
   private func makeSoldier(id: String = "ironguard-soldier") -> Adversary {
     Adversary(
-      id: id, name: "Ironguard Soldier", tier: 1, type: .bruiser,
-      description: "A disciplined mercenary.", difficulty: 11,
+      id: id, name: "Ironguard Soldier", tier: 1, role: .bruiser,
+      flavorText: "A disciplined mercenary.", difficulty: 11,
       thresholdMajor: 5, thresholdSevere: 10, hp: 6, stress: 3,
       attackModifier: "+3", attackName: "Longsword",
       attackRange: .veryClose, damage: "1d10+3 phy"
@@ -80,7 +80,7 @@ import Testing
   }
 
   private func makeEnv(id: String = "bridge") -> DaggerheartEnvironment {
-    DaggerheartEnvironment(id: id, name: "Bridge", description: "A rope bridge.")
+    DaggerheartEnvironment(id: id, name: "Bridge", flavorText: "A rope bridge.")
   }
 
   @Test func homebrewAdversaryAppearsInHomebrewList() {
@@ -106,8 +106,8 @@ import Testing
     var variant = makeSoldier()
     compendium.addAdversary(variant)
     variant = Adversary(
-      id: "ironguard-soldier", name: "Elite Ironguard", tier: 2, type: .bruiser,
-      description: "Upgraded.", difficulty: 14, thresholdMajor: 7, thresholdSevere: 14,
+      id: "ironguard-soldier", name: "Elite Ironguard", tier: 2, role: .bruiser,
+      flavorText: "Upgraded.", difficulty: 14, thresholdMajor: 7, thresholdSevere: 14,
       hp: 10, stress: 4, attackModifier: "+5", attackName: "Longsword",
       attackRange: .veryClose, damage: "2d10+5 phy"
     )

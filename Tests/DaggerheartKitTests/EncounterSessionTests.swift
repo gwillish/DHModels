@@ -25,8 +25,8 @@ import Testing
       id: "ironguard-soldier",
       name: "Ironguard Soldier",
       tier: 1,
-      type: .bruiser,
-      description: "A disciplined mercenary.",
+      role: .bruiser,
+      flavorText: "A disciplined mercenary.",
       difficulty: 11,
       thresholdMajor: 5,
       thresholdSevere: 10,
@@ -54,9 +54,9 @@ import Testing
     let session = makeSession()
     let soldier = makeSoldier()
     session.add(adversary: soldier)
-    let slotID = session.adversarySlots[0].id
+    let slot = session.adversarySlots[0]
 
-    session.applyDamage(4, to: slotID)
+    session.applyDamage(4, to: slot)
     #expect(session.adversarySlots[0].currentHP == 2)
   }
 
@@ -64,9 +64,9 @@ import Testing
     let session = makeSession()
     let soldier = makeSoldier()
     session.add(adversary: soldier)
-    let slotID = session.adversarySlots[0].id
+    let slot = session.adversarySlots[0]
 
-    session.applyDamage(100, to: slotID)
+    session.applyDamage(100, to: slot)
     #expect(session.adversarySlots[0].currentHP == 0)
     #expect(session.adversarySlots[0].isDefeated == true)
     #expect(session.activeAdversaries.isEmpty)
@@ -77,14 +77,14 @@ import Testing
     session.incrementFear(by: 3)
     #expect(session.fearPool == 3)
 
-    session.spendFear(2)
+    session.spendFear(by: 2)
     #expect(session.fearPool == 1)
 
-    session.spendFear(10)  // clamped
+    session.spendFear(by: 10)  // clamped
     #expect(session.fearPool == 0)
 
     session.incrementHope(by: 5)
-    session.spendHope(2)
+    session.spendHope(by: 2)
     #expect(session.hopePool == 3)
   }
 
@@ -94,16 +94,41 @@ import Testing
     session.add(adversary: soldier)
     #expect(session.isOver == false)
 
-    let slotID = session.adversarySlots[0].id
-    session.applyDamage(999, to: slotID)
+    let slot = session.adversarySlots[0]
+    session.applyDamage(999, to: slot)
     #expect(session.isOver == true)
   }
 
-  @Test func advanceRoundIncrementsCounter() {
+  @Test func spotlightCountStartsAtZero() {
     let session = makeSession()
-    #expect(session.currentRound == 1)
-    session.advanceRound()
-    #expect(session.currentRound == 2)
+    #expect(session.spotlightCount == 0)
+  }
+
+  @Test func spotlightIncrementsSporlightCount() {
+    let session = makeSession()
+    session.add(adversary: makeSoldier())
+    let slot = session.adversarySlots[0]
+
+    session.spotlight(slot)
+    #expect(session.spotlightCount == 1)
+    #expect(session.spotlightedSlotID == slot.id)
+
+    session.yieldSpotlight()
+    #expect(session.spotlightedSlotID == nil)
+    #expect(session.spotlightCount == 1)  // count doesn't reset on yield
+  }
+
+  @Test func spotlightMultipleTimesAccumulates() {
+    let session = makeSession()
+    session.add(adversary: makeSoldier())
+    session.add(adversary: makeSoldier())
+    let first = session.adversarySlots[0]
+    let second = session.adversarySlots[1]
+
+    session.spotlight(first)
+    session.spotlight(second)
+    #expect(session.spotlightCount == 2)
+    #expect(session.spotlightedSlotID == second.id)
   }
 
   // MARK: Adversary Conditions
@@ -117,110 +142,57 @@ import Testing
   @Test func applyConditionToAdversarySlot() {
     let session = makeSession()
     session.add(adversary: makeSoldier())
-    let slotID = session.adversarySlots[0].id
+    let slot = session.adversarySlots[0]
 
-    session.applyCondition(.restrained, to: slotID)
+    session.applyCondition(.restrained, to: slot)
     #expect(session.adversarySlots[0].conditions.contains(.restrained))
   }
 
   @Test func removeConditionFromAdversarySlot() {
     let session = makeSession()
     session.add(adversary: makeSoldier())
-    let slotID = session.adversarySlots[0].id
+    let slot = session.adversarySlots[0]
 
-    session.applyCondition(.hidden, to: slotID)
-    session.removeCondition(.hidden, from: slotID)
+    session.applyCondition(.hidden, to: slot)
+    session.removeCondition(.hidden, from: slot)
     #expect(!session.adversarySlots[0].conditions.contains(.hidden))
   }
 
   @Test func conditionsDoNotStack() {
     let session = makeSession()
     session.add(adversary: makeSoldier())
-    let slotID = session.adversarySlots[0].id
+    let slot = session.adversarySlots[0]
 
-    session.applyCondition(.vulnerable, to: slotID)
-    session.applyCondition(.vulnerable, to: slotID)
+    session.applyCondition(.vulnerable, to: slot)
+    session.applyCondition(.vulnerable, to: slot)
     #expect(session.adversarySlots[0].conditions.count == 1)
   }
 
   @Test func emptyCustomConditionOnAdversaryIsRejected() {
     let session = makeSession()
     session.add(adversary: makeSoldier())
-    let slotID = session.adversarySlots[0].id
+    let slot = session.adversarySlots[0]
 
-    session.applyCondition(.custom(""), to: slotID)
+    session.applyCondition(.custom(""), to: slot)
     #expect(session.adversarySlots[0].conditions.isEmpty)
   }
 
   @Test func whitespaceCustomConditionOnAdversaryIsRejected() {
     let session = makeSession()
     session.add(adversary: makeSoldier())
-    let slotID = session.adversarySlots[0].id
+    let slot = session.adversarySlots[0]
 
-    session.applyCondition(.custom("   "), to: slotID)
+    session.applyCondition(.custom("   "), to: slot)
     #expect(session.adversarySlots[0].conditions.isEmpty)
   }
 
   @Test func customConditionOnAdversarySlot() {
     let session = makeSession()
     session.add(adversary: makeSoldier())
-    let slotID = session.adversarySlots[0].id
+    let slot = session.adversarySlots[0]
 
-    session.applyCondition(.custom("Enraged"), to: slotID)
+    session.applyCondition(.custom("Enraged"), to: slot)
     #expect(session.adversarySlots[0].conditions.contains(.custom("Enraged")))
-  }
-
-  // MARK: Turn Order
-
-  @Test func advanceTurnSkipsDefeatedAdversary() {
-    let session = makeSession()
-    session.add(adversary: makeSoldier())
-    session.add(adversary: makeSoldier())
-
-    let firstID = session.turnOrder[0]
-    let secondID = session.turnOrder[1]
-
-    session.applyDamage(999, to: firstID)
-    session.advanceTurn()
-    #expect(session.activeSlotID == secondID)
-  }
-
-  @Test func advanceTurnSkipsDefeatedMidRound() {
-    let session = makeSession()
-    session.add(adversary: makeSoldier())
-    session.add(adversary: makeSoldier())
-    session.add(adversary: makeSoldier())
-
-    let firstID = session.turnOrder[0]
-    let secondID = session.turnOrder[1]
-    let thirdID = session.turnOrder[2]
-
-    session.advanceTurn()
-    session.advanceTurn()
-    #expect(session.activeSlotID == secondID)
-
-    session.applyDamage(999, to: thirdID)
-    session.advanceTurn()
-    #expect(session.activeSlotID == firstID)
-  }
-
-  @Test func advanceTurnCyclesSlots() {
-    let session = makeSession()
-    let soldier = makeSoldier()
-    session.add(adversary: soldier)
-    session.add(adversary: soldier)
-
-    let first = session.turnOrder[0]
-    let second = session.turnOrder[1]
-
-    session.advanceTurn()
-    #expect(session.activeSlotID == first)
-
-    session.advanceTurn()
-    #expect(session.activeSlotID == second)
-
-    session.advanceTurn()
-    #expect(session.activeSlotID == first)
   }
 }
 
@@ -237,8 +209,8 @@ import Testing
       id: "ironguard-soldier",
       name: "Ironguard Soldier",
       tier: 1,
-      type: .bruiser,
-      description: "A disciplined mercenary.",
+      role: .bruiser,
+      flavorText: "A disciplined mercenary.",
       difficulty: 11,
       thresholdMajor: 5,
       thresholdSevere: 10,
@@ -265,102 +237,98 @@ import Testing
 
   @Test func addPlayerSlotToSession() {
     let session = makeSession()
-    session.addPlayer(makePlayer())
+    session.add(player: makePlayer())
     #expect(session.playerSlots.count == 1)
     #expect(session.playerSlots[0].name == "Aldric")
   }
 
-  @Test func turnOrderIncludesPlayersAndAdversaries() {
+  @Test func spotlightCyclesThroughBothSlotTypes() {
     let session = makeSession()
     session.add(adversary: makeSoldier())
-    session.addPlayer(makePlayer())
-    #expect(session.turnOrder.count == 2)
-  }
+    session.add(player: makePlayer())
 
-  @Test func advanceTurnCyclesThroughBothSlotTypes() {
-    let session = makeSession()
-    session.add(adversary: makeSoldier())
-    session.addPlayer(makePlayer())
+    let adversarySlot = session.adversarySlots[0]
+    let playerSlot = session.playerSlots[0]
 
-    session.advanceTurn()
-    #expect(session.activeSlotID == session.turnOrder[0])
+    session.spotlight(adversarySlot)
+    #expect(session.spotlightedSlotID == adversarySlot.id)
 
-    session.advanceTurn()
-    #expect(session.activeSlotID == session.turnOrder[1])
+    session.spotlight(playerSlot)
+    #expect(session.spotlightedSlotID == playerSlot.id)
   }
 
   @Test func applyDamageToPlayerSlot() {
     let session = makeSession()
-    session.addPlayer(makePlayer())
-    let slotID = session.playerSlots[0].id
+    session.add(player: makePlayer())
+    let slot = session.playerSlots[0]
 
-    session.applyPlayerDamage(2, to: slotID)
+    session.applyDamage(2, to: slot)
     #expect(session.playerSlots[0].currentHP == 4)
   }
 
   @Test func playerDamageClampsToZero() {
     let session = makeSession()
-    session.addPlayer(makePlayer())
-    let slotID = session.playerSlots[0].id
+    session.add(player: makePlayer())
+    let slot = session.playerSlots[0]
 
-    session.applyPlayerDamage(100, to: slotID)
+    session.applyDamage(100, to: slot)
     #expect(session.playerSlots[0].currentHP == 0)
   }
 
   @Test func applyStressToPlayerSlot() {
     let session = makeSession()
-    session.addPlayer(makePlayer())
-    let slotID = session.playerSlots[0].id
+    session.add(player: makePlayer())
+    let slot = session.playerSlots[0]
 
-    session.applyPlayerStress(3, to: slotID)
+    session.applyStress(3, to: slot)
     #expect(session.playerSlots[0].currentStress == 3)
   }
 
   @Test func playerStressClampsToMax() {
     let session = makeSession()
-    session.addPlayer(makePlayer())
-    let slotID = session.playerSlots[0].id
+    session.add(player: makePlayer())
+    let slot = session.playerSlots[0]
 
-    session.applyPlayerStress(100, to: slotID)
+    session.applyStress(100, to: slot)
     #expect(session.playerSlots[0].currentStress == 6)
   }
 
   @Test func healPlayerSlot() {
     let session = makeSession()
-    session.addPlayer(makePlayer())
-    let slotID = session.playerSlots[0].id
+    session.add(player: makePlayer())
+    let slot = session.playerSlots[0]
 
-    session.applyPlayerDamage(4, to: slotID)
-    session.healPlayer(2, slotID: slotID)
+    session.applyDamage(4, to: slot)
+    session.heal(2, to: slot)
     #expect(session.playerSlots[0].currentHP == 4)
   }
 
   @Test func healPlayerClampsToMax() {
     let session = makeSession()
-    session.addPlayer(makePlayer())
-    let slotID = session.playerSlots[0].id
+    session.add(player: makePlayer())
+    let slot = session.playerSlots[0]
 
-    session.applyPlayerDamage(2, to: slotID)
-    session.healPlayer(100, slotID: slotID)
+    session.applyDamage(2, to: slot)
+    session.heal(100, to: slot)
     #expect(session.playerSlots[0].currentHP == 6)
   }
 
-  @Test func clearPlayerStress() {
+  @Test func reducePlayerStress() {
     let session = makeSession()
-    session.addPlayer(makePlayer())
-    let slotID = session.playerSlots[0].id
+    session.add(player: makePlayer())
+    let slot = session.playerSlots[0]
 
-    session.applyPlayerStress(4, to: slotID)
-    session.clearPlayerStress(2, slotID: slotID)
+    session.applyStress(4, to: slot)
+    session.reduceStress(2, from: slot)
     #expect(session.playerSlots[0].currentStress == 2)
   }
 
   @Test func markArmorSlotOnPlayer() {
     let session = makeSession()
-    session.addPlayer(makePlayer())
+    session.add(player: makePlayer())
     let slotID = session.playerSlots[0].id
 
-    session.markPlayerArmorSlot(slotID)
+    session.markArmorSlot(for: slotID)
     #expect(session.playerSlots[0].currentArmorSlots == 2)
   }
 
@@ -372,50 +340,50 @@ import Testing
       evasion: player.evasion, thresholdMajor: player.thresholdMajor,
       thresholdSevere: player.thresholdSevere, armorSlots: 1
     )
-    session.addPlayer(player)
+    session.add(player: player)
     let slotID = session.playerSlots[0].id
 
-    session.markPlayerArmorSlot(slotID)
-    session.markPlayerArmorSlot(slotID)  // already at 0
+    session.markArmorSlot(for: slotID)
+    session.markArmorSlot(for: slotID)  // already at 0
     #expect(session.playerSlots[0].currentArmorSlots == 0)
   }
 
   @Test func emptyCustomConditionOnPlayerIsRejected() {
     let session = makeSession()
-    session.addPlayer(makePlayer())
-    let slotID = session.playerSlots[0].id
+    session.add(player: makePlayer())
+    let slot = session.playerSlots[0]
 
-    session.applyPlayerCondition(.custom(""), to: slotID)
+    session.applyCondition(.custom(""), to: slot)
     #expect(session.playerSlots[0].conditions.isEmpty)
   }
 
   @Test func applyConditionToPlayerSlot() {
     let session = makeSession()
-    session.addPlayer(makePlayer())
-    let slotID = session.playerSlots[0].id
+    session.add(player: makePlayer())
+    let slot = session.playerSlots[0]
 
-    session.applyPlayerCondition(.vulnerable, to: slotID)
+    session.applyCondition(.vulnerable, to: slot)
     #expect(session.playerSlots[0].conditions.contains(.vulnerable))
   }
 
   @Test func removeConditionFromPlayerSlot() {
     let session = makeSession()
-    session.addPlayer(makePlayer())
-    let slotID = session.playerSlots[0].id
+    session.add(player: makePlayer())
+    let slot = session.playerSlots[0]
 
-    session.applyPlayerCondition(.hidden, to: slotID)
-    session.removePlayerCondition(.hidden, from: slotID)
+    session.applyCondition(.hidden, to: slot)
+    session.removeCondition(.hidden, from: slot)
     #expect(!session.playerSlots[0].conditions.contains(.hidden))
   }
 
   @Test func removePlayerFromSession() {
     let session = makeSession()
-    session.addPlayer(makePlayer())
+    session.add(player: makePlayer())
     let slotID = session.playerSlots[0].id
 
     session.removePlayer(id: slotID)
     #expect(session.playerSlots.isEmpty)
-    #expect(!session.turnOrder.contains(slotID))
+    #expect(session.spotlightedSlotID == nil)
   }
 }
 
@@ -428,7 +396,7 @@ import Testing
     comp.addAdversary(
       Adversary(
         id: "ironguard-soldier", name: "Ironguard Soldier",
-        tier: 1, type: .bruiser, description: "A disciplined mercenary.",
+        tier: 1, role: .bruiser, flavorText: "A disciplined mercenary.",
         difficulty: 11, thresholdMajor: 5, thresholdSevere: 10,
         hp: 6, stress: 3, attackModifier: "+3", attackName: "Longsword",
         attackRange: .veryClose, damage: "1d10+3 phy"
@@ -436,7 +404,7 @@ import Testing
     comp.addEnvironment(
       DaggerheartEnvironment(
         id: "collapsing-bridge", name: "Collapsing Bridge",
-        description: "A rope-and-plank bridge."
+        flavorText: "A rope-and-plank bridge."
       ))
     return comp
   }
@@ -453,7 +421,7 @@ import Testing
       )
     ]
 
-    let session = EncounterSession.start(from: def, using: compendium)
+    let session = EncounterSession.make(from: def, using: compendium)
 
     #expect(session.name == "Test Battle")
     #expect(session.adversarySlots.count == 2)
@@ -461,7 +429,7 @@ import Testing
     #expect(session.playerSlots.count == 1)
     #expect(session.playerSlots[0].name == "Aldric")
     #expect(session.environmentSlots.count == 1)
-    #expect(session.currentRound == 1)
+    #expect(session.spotlightCount == 0)
     #expect(session.fearPool == 0)
   }
 
@@ -470,7 +438,7 @@ import Testing
     var def = EncounterDefinition(name: "Test")
     def.adversaryIDs = ["ironguard-soldier", "nonexistent-creature"]
 
-    let session = EncounterSession.start(from: def, using: compendium)
+    let session = EncounterSession.make(from: def, using: compendium)
     #expect(session.adversarySlots.count == 1)
   }
 
@@ -479,11 +447,11 @@ import Testing
     var def = EncounterDefinition(name: "Test")
     def.gmNotes = "Remember the secret door."
 
-    let session = EncounterSession.start(from: def, using: compendium)
+    let session = EncounterSession.make(from: def, using: compendium)
     #expect(session.gmNotes == "Remember the secret door.")
   }
 
-  @Test func sessionFromDefinitionBuildsTurnOrder() {
+  @Test func sessionFromDefinitionHasNoInitialSpotlight() {
     let compendium = makeCompendium()
     var def = EncounterDefinition(name: "Test")
     def.adversaryIDs = ["ironguard-soldier"]
@@ -494,8 +462,9 @@ import Testing
       )
     ]
 
-    let session = EncounterSession.start(from: def, using: compendium)
-    #expect(session.turnOrder.count == 2)
+    let session = EncounterSession.make(from: def, using: compendium)
+    #expect(session.spotlightedSlotID == nil)
+    #expect(session.spotlightCount == 0)
   }
 }
 
@@ -505,8 +474,8 @@ import Testing
 
   private func makeSoldier() -> Adversary {
     Adversary(
-      id: "ironguard-soldier", name: "Ironguard Soldier", tier: 1, type: .bruiser,
-      description: "A disciplined mercenary.", difficulty: 11,
+      id: "ironguard-soldier", name: "Ironguard Soldier", tier: 1, role: .bruiser,
+      flavorText: "A disciplined mercenary.", difficulty: 11,
       thresholdMajor: 5, thresholdSevere: 10, hp: 6, stress: 3,
       attackModifier: "+3", attackName: "Longsword",
       attackRange: .veryClose, damage: "1d10+3 phy"
@@ -514,7 +483,7 @@ import Testing
   }
 
   @Test func slotSnapshotsMaxHPAndMaxStress() {
-    let slot = AdversarySlot.from(makeSoldier())
+    let slot = AdversarySlot.make(from: makeSoldier())
     #expect(slot.maxHP == 6)
     #expect(slot.maxStress == 3)
   }
@@ -522,40 +491,40 @@ import Testing
   @Test func applyStressClampedToSnapshotMax() {
     let session = EncounterSession(name: "Test")
     session.add(adversary: makeSoldier())
-    let slotID = session.adversarySlots[0].id
+    let slot = session.adversarySlots[0]
 
-    session.applyStress(100, to: slotID)
+    session.applyStress(100, to: slot)
     #expect(session.adversarySlots[0].currentStress == 3)
   }
 
   @Test func applyStressAccumulatesCorrectly() {
     let session = EncounterSession(name: "Test")
     session.add(adversary: makeSoldier())
-    let slotID = session.adversarySlots[0].id
+    let slot = session.adversarySlots[0]
 
-    session.applyStress(1, to: slotID)
-    session.applyStress(1, to: slotID)
+    session.applyStress(1, to: slot)
+    session.applyStress(1, to: slot)
     #expect(session.adversarySlots[0].currentStress == 2)
   }
 
   @Test func healClampedToSnapshotMaxHP() {
     let session = EncounterSession(name: "Test")
     session.add(adversary: makeSoldier())
-    let slotID = session.adversarySlots[0].id
+    let slot = session.adversarySlots[0]
 
-    session.applyDamage(4, to: slotID)
-    session.heal(100, slotID: slotID)
+    session.applyDamage(4, to: slot)
+    session.heal(100, to: slot)
     #expect(session.adversarySlots[0].currentHP == 6)
   }
 
   @Test func healFromZeroUnsetsDefeated() {
     let session = EncounterSession(name: "Test")
     session.add(adversary: makeSoldier())
-    let slotID = session.adversarySlots[0].id
+    let slot = session.adversarySlots[0]
 
-    session.applyDamage(999, to: slotID)
+    session.applyDamage(999, to: slot)
     #expect(session.adversarySlots[0].isDefeated == true)
-    session.heal(6, slotID: slotID)
+    session.heal(6, to: slot)
     #expect(session.adversarySlots[0].isDefeated == false)
     #expect(session.adversarySlots[0].currentHP == 6)
   }

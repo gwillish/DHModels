@@ -22,15 +22,15 @@ import Observation
 
 /// Errors that can occur while loading compendium data.
 nonisolated public enum CompendiumError: Error, LocalizedError {
-  case fileNotFound(String)
-  case decodingFailed(String, Error)
+  case fileNotFound(resourceName: String)
+  case decodingFailed(resourceName: String, underlying: Error)
 
   public var errorDescription: String? {
     switch self {
-    case .fileNotFound(let name):
-      return "Compendium resource '\(name)' not found in app bundle."
-    case .decodingFailed(let name, let underlying):
-      return "Failed to decode '\(name)': \(underlying.localizedDescription)"
+    case .fileNotFound(let resourceName):
+      return "Compendium resource '\(resourceName)' not found in app bundle."
+    case .decodingFailed(let resourceName, let underlying):
+      return "Failed to decode '\(resourceName)': \(underlying.localizedDescription)"
     }
   }
 }
@@ -100,6 +100,8 @@ public final class Compendium {
   /// All adversaries merged in priority order: homebrew → sources → srd.
   /// Within sources, higher-priority packs should be inserted last to win conflicts.
   /// Result is cached; invalidated whenever any source bucket changes.
+  ///
+  /// - Complexity: O(*n*) on cache miss, where *n* is the total adversary count across all sources.
   public var adversariesByID: [String: Adversary] {
     if let cached = _cachedAdversariesByID { return cached }
     var merged = srdAdversariesByID
@@ -113,6 +115,8 @@ public final class Compendium {
 
   /// All environments merged in priority order: homebrew → sources → srd.
   /// Result is cached; invalidated whenever any source bucket changes.
+  ///
+  /// - Complexity: O(*n*) on cache miss, where *n* is the total environment count across all sources.
   public var environmentsByID: [String: DaggerheartEnvironment] {
     if let cached = _cachedEnvironmentsByID { return cached }
     var merged = srdEnvironmentsByID
@@ -125,21 +129,29 @@ public final class Compendium {
   }
 
   /// Sorted array of all adversaries (for list views).
+  ///
+  /// - Complexity: O(*n* log *n*) where *n* is the total adversary count.
   public var adversaries: [Adversary] {
     adversariesByID.values.sorted { $0.name < $1.name }
   }
 
   /// Sorted array of all environments.
+  ///
+  /// - Complexity: O(*n* log *n*) where *n* is the total environment count.
   public var environments: [DaggerheartEnvironment] {
     environmentsByID.values.sorted { $0.name < $1.name }
   }
 
   /// Sorted array of homebrew-only adversaries.
+  ///
+  /// - Complexity: O(*k* log *k*) where *k* is the homebrew adversary count.
   public var homebrewAdversaries: [Adversary] {
     homebrewAdversariesByID.values.sorted { $0.name < $1.name }
   }
 
   /// Sorted array of homebrew-only environments.
+  ///
+  /// - Complexity: O(*k* log *k*) where *k* is the homebrew environment count.
   public var homebrewEnvironments: [DaggerheartEnvironment] {
     homebrewEnvironmentsByID.values.sorted { $0.name < $1.name }
   }
@@ -207,7 +219,7 @@ public final class Compendium {
       logger.error("Compendium load failed: \(error.localizedDescription)")
       throw error
     } catch {
-      let wrapped = CompendiumError.decodingFailed("unknown", error)
+      let wrapped = CompendiumError.decodingFailed(resourceName: "unknown", underlying: error)
       loadError = wrapped
       logger.error("Compendium load failed (unexpected): \(error)")
       throw wrapped
@@ -229,13 +241,13 @@ public final class Compendium {
   }
 
   /// Return all adversaries for a given tier.
-  public func adversaries(tier: Int) -> [Adversary] {
+  public func adversaries(ofTier tier: Int) -> [Adversary] {
     adversaries.filter { $0.tier == tier }
   }
 
-  /// Return all adversaries of a given type.
-  public func adversaries(type: AdversaryType) -> [Adversary] {
-    adversaries.filter { $0.type == type }
+  /// Return all adversaries of a given role.
+  public func adversaries(ofType role: AdversaryType) -> [Adversary] {
+    adversaries.filter { $0.role == role }
   }
 
   /// Full-text search across adversary names and descriptions.
@@ -243,7 +255,7 @@ public final class Compendium {
   public func searchAdversaries(query: String) -> [Adversary] {
     guard !query.isEmpty else { return adversaries }
     return adversaries.filter {
-      $0.name.localizedStandardContains(query) || $0.description.localizedStandardContains(query)
+      $0.name.localizedStandardContains(query) || $0.flavorText.localizedStandardContains(query)
     }
   }
 
@@ -328,7 +340,7 @@ public final class Compendium {
     _ type: T.Type, fromResource name: String, bundle: Bundle
   ) async throws -> [T] {
     guard let url = bundle.url(forResource: name, withExtension: "json") else {
-      throw CompendiumError.fileNotFound("\(name).json")
+      throw CompendiumError.fileNotFound(resourceName: "\(name).json")
     }
     do {
       let data = try Data(contentsOf: url)
@@ -336,7 +348,7 @@ public final class Compendium {
     } catch let error as CompendiumError {
       throw error
     } catch {
-      throw CompendiumError.decodingFailed("\(name).json", error)
+      throw CompendiumError.decodingFailed(resourceName: "\(name).json", underlying: error)
     }
   }
 }

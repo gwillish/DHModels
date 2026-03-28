@@ -41,7 +41,7 @@ public final class SessionRegistry {
     compendium: Compendium
   ) -> EncounterSession {
     if let existing = sessions[definitionID] { return existing }
-    let newSession = EncounterSession.start(from: definition, using: compendium)
+    let newSession = EncounterSession.make(from: definition, using: compendium)
     sessions[definitionID] = newSession
     return newSession
   }
@@ -61,7 +61,7 @@ public final class SessionRegistry {
     definition: EncounterDefinition,
     compendium: Compendium
   ) -> EncounterSession {
-    let newSession = EncounterSession.start(from: definition, using: compendium)
+    let newSession = EncounterSession.make(from: definition, using: compendium)
     sessions[definitionID] = newSession
     return newSession
   }
