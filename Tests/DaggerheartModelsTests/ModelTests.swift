@@ -101,9 +101,9 @@ struct AdversaryDecodingTests {
 
     let adversary = try JSONDecoder().decode(Adversary.self, from: json)
     #expect(adversary.features.count == 3)
-    #expect(adversary.features[0].featType == FeatureType.passive)
-    #expect(adversary.features[1].featType == FeatureType.reaction)
-    #expect(adversary.features[2].featType == FeatureType.action)
+    #expect(adversary.features[0].kind == FeatureType.passive)
+    #expect(adversary.features[1].kind == FeatureType.reaction)
+    #expect(adversary.features[2].kind == FeatureType.action)
   }
 
   // MARK: AdversaryType round-trip
@@ -150,7 +150,7 @@ struct AdversaryDecodingTests {
         """.data(using: .utf8)!
 
       let adversary = try JSONDecoder().decode(Adversary.self, from: json)
-      #expect(adversary.type.rawValue == typeString)
+      #expect(adversary.role.rawValue == typeString)
     }
   }
 
@@ -493,6 +493,6 @@ struct EnvironmentModelTests {
     let env = try JSONDecoder().decode(DaggerheartEnvironment.self, from: json)
     #expect(env.id == "arcane-storm")
     #expect(env.features.count == 1)
-    #expect(env.features[0].featType == FeatureType.passive)
+    #expect(env.features[0].kind == FeatureType.passive)
   }
 }

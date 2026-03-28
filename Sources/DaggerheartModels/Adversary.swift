@@ -87,7 +87,7 @@ nonisolated public enum FeatureType: String, Codable, CaseIterable, Sendable {
 
   /// Infers the feature type from the " - Type" suffix in SRD feature names,
   /// e.g. "Earth Eruption - Action" → .action. Defaults to .passive.
-  static func inferred(from featureName: String) -> FeatureType {
+  public static func inferred(from featureName: String) -> FeatureType {
     let lower = featureName.lowercased()
     if lower.hasSuffix("- action") { return .action }
     if lower.hasSuffix("- reaction") { return .reaction }
@@ -95,43 +95,43 @@ nonisolated public enum FeatureType: String, Codable, CaseIterable, Sendable {
   }
 }
 
-// MARK: - AdversaryFeature
+// MARK: - EncounterFeature
 
 /// A single named feature (action, reaction, or passive) on an adversary or environment.
-nonisolated public struct AdversaryFeature: Codable, Identifiable, Sendable, Equatable, Hashable {
+nonisolated public struct EncounterFeature: Codable, Identifiable, Sendable, Equatable, Hashable {
   // `id` uses name because feature names are unique within a given adversary.
   public var id: String { name }
 
   public let name: String
   public let text: String
-  public let featType: FeatureType
+  public let kind: FeatureType
 
   // Community JSON uses "feat_type"; SRD JSON omits it entirely.
-  // When absent, type is inferred from the " - Type" suffix in the feature name.
+  // When absent, kind is inferred from the " - Type" suffix in the feature name.
   enum CodingKeys: String, CodingKey {
     case name
     case text
-    case featType = "feat_type"
+    case kind = "feat_type"
   }
 
   public init(from decoder: Decoder) throws {
     let c = try decoder.container(keyedBy: CodingKeys.self)
     name = try c.decode(String.self, forKey: .name)
     text = try c.decode(String.self, forKey: .text)
-    if let rawType = try c.decodeIfPresent(String.self, forKey: .featType),
+    if let rawType = try c.decodeIfPresent(String.self, forKey: .kind),
       let parsed = FeatureType(rawValue: rawType)
     {
-      featType = parsed
+      kind = parsed
     } else {
       // SRD JSON omits feat_type; infer from the " - Type" name suffix.
-      featType = FeatureType.inferred(from: name)
+      kind = FeatureType.inferred(from: name)
     }
   }
 
-  public init(name: String, text: String, featType: FeatureType) {
+  public init(name: String, text: String, kind: FeatureType) {
     self.name = name
     self.text = text
-    self.featType = featType
+    self.kind = kind
   }
 }
 
@@ -164,10 +164,10 @@ nonisolated public struct Adversary: Codable, Identifiable, Sendable, Equatable,
   // MARK: Classification
   /// Opposes PCs of the matching tier (1–4).
   public let tier: Int
-  public let type: AdversaryType
+  public let role: AdversaryType
 
   // MARK: Description
-  public let description: String
+  public let flavorText: String
   /// GM-facing guidance on how to play this adversary at the table.
   public let motivesAndTactics: String?
 
@@ -195,7 +195,7 @@ nonisolated public struct Adversary: Codable, Identifiable, Sendable, Equatable,
   /// Optional experience tag, e.g. `"Tremor Sense +2"`.
   public let experience: String?
   /// Actions, reactions, and passives for this adversary.
-  public let features: [AdversaryFeature]
+  public let features: [EncounterFeature]
 
   // MARK: - CodingKeys
 
@@ -260,8 +260,8 @@ nonisolated public struct Adversary: Codable, Identifiable, Sendable, Equatable,
     source = (try c.decodeIfPresent(String.self, forKey: .source) ?? "srd").lowercased()
     // SRD JSON encodes numeric stats as strings; homebrew may use ints.
     tier = try Self.intOrString(c, forKey: .tier)
-    type = try c.decode(AdversaryType.self, forKey: .type)
-    description = try c.decode(String.self, forKey: .description)
+    role = try c.decode(AdversaryType.self, forKey: .type)
+    flavorText = try c.decode(String.self, forKey: .description)
     motivesAndTactics = try c.decodeIfPresent(String.self, forKey: .motivesAndTactics)
     difficulty = try Self.intOrString(c, forKey: .difficulty)
     hp = try Self.intOrString(c, forKey: .hp)
@@ -271,7 +271,7 @@ nonisolated public struct Adversary: Codable, Identifiable, Sendable, Equatable,
     attackRange = try c.decode(AttackRange.self, forKey: .attackRange)
     damage = try c.decode(String.self, forKey: .damage)
     experience = try c.decodeIfPresent(String.self, forKey: .experience)
-    features = try c.decodeIfPresent([AdversaryFeature].self, forKey: .features) ?? []
+    features = try c.decodeIfPresent([EncounterFeature].self, forKey: .features) ?? []
 
     // Threshold decoding: prefer pre-split keys, fall back to "major/severe" string.
     if let major = try c.decodeIfPresent(Int.self, forKey: .thresholdMajor),
@@ -320,8 +320,8 @@ nonisolated public struct Adversary: Codable, Identifiable, Sendable, Equatable,
     try c.encode(name, forKey: .name)
     try c.encode(source, forKey: .source)
     try c.encode(tier, forKey: .tier)
-    try c.encode(type, forKey: .type)
-    try c.encode(description, forKey: .description)
+    try c.encode(role, forKey: .type)
+    try c.encode(flavorText, forKey: .description)
     try c.encodeIfPresent(motivesAndTactics, forKey: .motivesAndTactics)
     try c.encode(difficulty, forKey: .difficulty)
     try c.encode(thresholdMajor, forKey: .thresholdMajor)
@@ -343,8 +343,8 @@ nonisolated public struct Adversary: Codable, Identifiable, Sendable, Equatable,
     name: String,
     source: String = "srd",
     tier: Int,
-    type: AdversaryType,
-    description: String,
+    role: AdversaryType,
+    flavorText: String,
     motivesAndTactics: String? = nil,
     difficulty: Int,
     thresholdMajor: Int,
@@ -356,14 +356,14 @@ nonisolated public struct Adversary: Codable, Identifiable, Sendable, Equatable,
     attackRange: AttackRange,
     damage: String,
     experience: String? = nil,
-    features: [AdversaryFeature] = []
+    features: [EncounterFeature] = []
   ) {
     self.id = id
     self.name = name
     self.source = source
     self.tier = tier
-    self.type = type
-    self.description = description
+    self.role = role
+    self.flavorText = flavorText
     self.motivesAndTactics = motivesAndTactics
     self.difficulty = difficulty
     self.thresholdMajor = thresholdMajor
@@ -376,5 +376,19 @@ nonisolated public struct Adversary: Codable, Identifiable, Sendable, Equatable,
     self.damage = damage
     self.experience = experience
     self.features = features
+  }
+}
+
+// MARK: - CustomStringConvertible
+
+extension Adversary: CustomStringConvertible {
+  /// A human-readable summary: name, tier, and type.
+  public var description: String { "\(name) (Tier \(tier) \(role))" }
+}
+
+extension Adversary: CustomDebugStringConvertible {
+  /// A debug-focused identity string with key combat stats.
+  public var debugDescription: String {
+    "Adversary(id: \(id), tier: \(tier), role: \(role), hp: \(hp), stress: \(stress), difficulty: \(difficulty))"
   }
 }
