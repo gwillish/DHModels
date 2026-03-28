@@ -1,3 +1,4 @@
+import ArgumentParser
 import DaggerheartModels
 import Foundation
 
@@ -10,27 +11,40 @@ import Foundation
 // Full field-level validation (required fields, value ranges) is tracked in
 // https://github.com/gwillish/DaggerheartModels/issues/5
 
-guard CommandLine.arguments.count > 1 else {
-  fputs("usage: validate-dhpack <file.dhpack> [...]\n", stderr)
-  exit(1)
-}
+struct ValidateDHPack: ParsableCommand {
+  static let configuration = CommandConfiguration(
+    commandName: "validate-dhpack",
+    abstract: "Validate one or more .dhpack files against the DaggerheartModels schema."
+  )
 
-var failed = false
+  @Argument(help: "One or more .dhpack files to validate.")
+  var files: [String]
 
-for path in CommandLine.arguments.dropFirst() {
-  let url = URL(filePath: path)
-  do {
-    let data = try Data(contentsOf: url)
-    let pack = try JSONDecoder().decode(DHPackContent.self, from: data)
-    let adversaryCount = pack.adversaries.count
-    let environmentCount = pack.environments.count
-    print(
-      "\(path): OK (\(adversaryCount) adversar\(adversaryCount == 1 ? "y" : "ies"), \(environmentCount) environment\(environmentCount == 1 ? "" : "s"))"
-    )
-  } catch {
-    fputs("\(path): FAILED — \(error.localizedDescription)\n", stderr)
-    failed = true
+  mutating func run() throws {
+    var failed = false
+
+    for path in files {
+      let url = URL(filePath: path)
+      do {
+        let data = try Data(contentsOf: url)
+        let pack = try JSONDecoder().decode(DHPackContent.self, from: data)
+        let adversaryCount = pack.adversaries.count
+        let environmentCount = pack.environments.count
+        print(
+          "\(path): OK (\(adversaryCount) adversar\(adversaryCount == 1 ? "y" : "ies"), "
+            + "\(environmentCount) environment\(environmentCount == 1 ? "" : "s"))"
+        )
+      } catch {
+        FileHandle.standardError.write(
+          Data("\(path): FAILED — \(error.localizedDescription)\n".utf8))
+        failed = true
+      }
+    }
+
+    if failed {
+      throw ExitCode.failure
+    }
   }
 }
 
-exit(failed ? 1 : 0)
+ValidateDHPack.main()
