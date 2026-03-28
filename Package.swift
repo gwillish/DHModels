@@ -21,6 +21,7 @@ let package = Package(
     .executable(name: "validate-dhpack", targets: ["validate-dhpack"]),
   ],
   dependencies: [
+    .package(url: "https://github.com/apple/swift-argument-parser", from: "1.3.0"),
     .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
   ],
   targets: [
@@ -47,7 +48,10 @@ let package = Package(
     // CLI tool for validating .dhpack files — depends only on DaggerheartModels.
     .executableTarget(
       name: "validate-dhpack",
-      dependencies: ["DaggerheartModels"],
+      dependencies: [
+        "DaggerheartModels",
+        .product(name: "ArgumentParser", package: "swift-argument-parser"),
+      ],
       swiftSettings: sharedSettings
     ),
 
