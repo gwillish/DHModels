@@ -1,10 +1,11 @@
 //
 //  AdversarySlot.swift
-//  DHModels
+//  DHKit
 //
 //  A single adversary participant in a live encounter.
 //
 
+import DHModels
 import Foundation
 
 /// A single adversary participant in a live encounter.
@@ -19,7 +20,7 @@ import Foundation
 ///
 /// All properties are immutable. Mutations are performed by ``EncounterSession``,
 /// which replaces slots wholesale (copy-with-update pattern).
-public struct AdversarySlot: CombatParticipant, Sendable, Equatable, Hashable {
+nonisolated public struct AdversarySlot: CombatParticipant, Sendable, Equatable, Hashable {
   public let id: UUID
   /// The slug that identifies this adversary in the ``Compendium``.
   public let adversaryID: String

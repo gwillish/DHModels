@@ -3,8 +3,8 @@
 //  DaggerheartModelsTests
 //
 //  Unit tests for pure Codable model types:
-//  Adversary, Condition, PlayerSlot, EncounterDefinition,
-//  DifficultyBudget, EncounterStoreError, DaggerheartEnvironment.
+//  Adversary, Condition, EncounterDefinition,
+//  DifficultyBudget, DaggerheartEnvironment.
 //
 
 import Foundation
@@ -222,41 +222,6 @@ struct ConditionTests {
     #expect(Condition.restrained.displayName == "Restrained")
     #expect(Condition.vulnerable.displayName == "Vulnerable")
     #expect(Condition.custom("Enraged").displayName == "Enraged")
-  }
-}
-
-// MARK: - PlayerSlot
-
-struct PlayerSlotTests {
-
-  @Test func playerSlotInitializesWithCorrectDefaults() {
-    let slot = PlayerSlot(
-      name: "Aldric",
-      maxHP: 6,
-      maxStress: 6,
-      evasion: 12,
-      thresholdMajor: 8,
-      thresholdSevere: 15,
-      armorSlots: 3
-    )
-    #expect(slot.name == "Aldric")
-    #expect(slot.currentHP == 6)
-    #expect(slot.currentStress == 0)
-    #expect(slot.currentArmorSlots == 3)
-    #expect(slot.conditions.isEmpty)
-  }
-
-  @Test func playerSlotEquality() {
-    let id = UUID()
-    let slot1 = PlayerSlot(
-      id: id, name: "A", maxHP: 6, maxStress: 6,
-      evasion: 10, thresholdMajor: 5, thresholdSevere: 10, armorSlots: 2
-    )
-    let slot2 = PlayerSlot(
-      id: id, name: "A", maxHP: 6, maxStress: 6,
-      evasion: 10, thresholdMajor: 5, thresholdSevere: 10, armorSlots: 2
-    )
-    #expect(slot1 == slot2)
   }
 }
 

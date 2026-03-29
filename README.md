@@ -32,40 +32,12 @@ is hosted on the **Swift Package Index**.
 ### `DHModels`
 
 Pure value types (structs and enums) that model Daggerheart catalog and encounter
-data. No UIKit, AppKit, Observation, or Apple-only frameworks — safe to use on
-Linux, server-side Swift, and hopefully Wasm as well.
+data. 
 
-| Type | Purpose |
-|---|---|
-| `Adversary` | Catalog entry for a Daggerheart adversary (stats, features, thresholds) |
-| `AdversaryType` | Adversary role enum: Bruiser, Horde, Leader, Minion, Ranged, Skulk, Social, Solo, Standard, Support |
-| `EncounterFeature` | Named action, reaction, or passive on an adversary or environment |
-| `FeatureType` | Feature category enum: action, reaction, passive |
-| `AttackRange` | Attack range enum: Melee, Very Close, Close, Far, Very Far |
-| `DaggerheartEnvironment` | Catalog entry for a scene environment |
-| `EncounterDefinition` | Saved encounter definition (name, adversary roster, GM notes) |
-| `PlayerSlot` | Player configuration within an encounter definition |
-| `DHPackContent` | Top-level type for `.dhpack` content pack files |
-| `ContentSource` | Remote content source (URL, display name, cache metadata) |
-| `ContentFingerprint` | Snapshot hash + etag for change detection |
-| `ContentStoreError` | Errors from content source management |
-| `DifficultyBudget` | Difficulty assessment helpers |
-| `Condition` | Status condition (name, description) |
+### `DHKit` — `@Observable` stores
 
-### `DHKit` — Apple-platform `@Observable` stores
-
-`@MainActor` observable classes for SwiftUI integration. Requires Apple platforms
-(iOS 17+, macOS 14+, tvOS 17+, watchOS 10+). Depends on `DHModels` and
-`swift-log`.
-
-| Type | Purpose |
-|---|---|
-| `Compendium` | Loads SRD adversary and environment JSON from the bundle; supports homebrew and community source packs; full-text search |
-| `EncounterStore` | Persists `EncounterDefinition` files to disk; create, save, delete, duplicate |
-| `EncounterSession` | Runtime mutable state for a live encounter: HP/stress tracking, adversary slots, player slots |
-| `SessionRegistry` | Cache of active `EncounterSession` instances keyed by encounter ID |
-| `CompendiumError` | Errors from Compendium loading |
-| `EncounterStoreError` | Errors from EncounterStore persistence |
+`@MainActor` observable classes for UI integration. 
+Depends on `DHModels` and `swift-log`.
 
 ### `validate-dhpack` — CLI tool
 
@@ -127,7 +99,7 @@ swift build
 # Run all tests
 swift test
 
-# Linux-safe model tests only
+# Model tests only
 swift test --filter DHModelsTests
 ```
 

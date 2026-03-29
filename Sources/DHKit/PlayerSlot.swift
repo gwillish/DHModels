@@ -1,6 +1,6 @@
 //
 //  PlayerSlot.swift
-//  Encounter
+//  DHKit
 //
 //  A player character participant in a live encounter.
 //  Tracks the combat-relevant subset of a PC's stats that the GM needs
@@ -13,13 +13,14 @@
 //  - Armor Slots: Marks available to reduce damage severity (equals Armor Score).
 //
 
+import DHModels
 import Foundation
 
 /// A player character participant in a live encounter.
 ///
 /// Tracks combat-relevant PC stats the GM needs to resolve hits and
 /// track health during play. The full character sheet remains with the player.
-public struct PlayerSlot: CombatParticipant, Sendable, Equatable, Hashable {
+nonisolated public struct PlayerSlot: CombatParticipant, Sendable, Equatable, Hashable {
   public let id: UUID
   public let name: String
 
