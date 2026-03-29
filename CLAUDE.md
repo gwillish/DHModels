@@ -112,13 +112,33 @@ git ls-files -z '*.swift' | xargs -0 swift-format lint --strict --parallel
 
 ## Adding new model types
 
-1. Add the `.swift` file to `Sources/DHModels/` if the type is
-   Foundation-only, or to `Sources/DHKit/` if it needs `@Observable`
-   or Apple-only frameworks.
+Use this decision tree to choose the right target:
+
+- **`DHModels`** — static catalog and prep-time types: `Adversary`,
+  `DaggerheartEnvironment`, `EncounterDefinition`, `PlayerConfig`, `Condition`,
+  etc. Must be Foundation-only and Linux-safe. Will appear in `.dhpack`/JSON files
+  or be referenced by `validate-dhpack`. Test in `DHModelsTests`.
+- **`DHKit`** — everything else on Apple platforms: `@Observable` stores
+  (`Compendium`, `EncounterStore`, `SessionRegistry`), live session types
+  (`EncounterSession`, `AdversarySlot`, `PlayerSlot`, `EnvironmentSlot`,
+  `EncounterParticipant`/`CombatParticipant`), and any type that depends on
+  `Observation` or other Apple-only frameworks. Test in `DHKitTests`.
+
+The key distinction is **catalog vs. runtime**: a type that models static
+game-data definitions belongs in `DHModels`; a type that represents live,
+in-play encounter state belongs in `DHKit` even if it is a plain value type
+with no Apple-only imports.
+
+**`nonisolated` on DHKit value types:** `DHKit` uses
+`.defaultIsolation(MainActor.self)`. Any `struct` or `enum` that must be
+usable across isolation contexts (e.g. slot types) needs `nonisolated` on its
+declaration to opt out of the default `@MainActor` isolation.
+
+1. Add the `.swift` file to the correct target (see above).
 2. Make it `public`.
 3. Add `Codable` conformance if it will appear in `.dhpack` or JSON files.
-4. Write tests in `DHModelsTests` (for model types) or `DHKitTests`
-   (for observable stores). Follow red-green TDD.
+4. Write tests in `DHModelsTests` (for `DHModels` types) or `DHKitTests`
+   (for `DHKit` types). Follow red-green TDD.
 5. Run `./Scripts/format.sh` before committing.
 
 ---

@@ -1,6 +1,6 @@
 //
 //  EnvironmentSlot.swift
-//  DHModels
+//  DHKit
 //
 //  An environment element active in the current encounter scene.
 //
@@ -14,7 +14,7 @@ import Foundation
 ///
 /// All properties are immutable. Mutations are performed by ``EncounterSession``,
 /// which replaces slots wholesale (copy-with-update pattern).
-public struct EnvironmentSlot: EncounterParticipant, Sendable, Equatable, Hashable {
+nonisolated public struct EnvironmentSlot: EncounterParticipant, Sendable, Equatable, Hashable {
   public let id: UUID
   /// The slug identifying this environment in the ``Compendium``.
   public let environmentID: String
