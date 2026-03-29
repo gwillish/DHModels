@@ -13,7 +13,11 @@
 //  Per the SRD, the same condition cannot stack on a target.
 //
 
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 /// A condition that can be applied to a combatant in a Daggerheart encounter.
 ///

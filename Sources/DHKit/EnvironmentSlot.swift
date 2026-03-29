@@ -5,7 +5,11 @@
 //  An environment element active in the current encounter scene.
 //
 
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 /// An environment element active in the current encounter scene.
 ///

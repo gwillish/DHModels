@@ -6,7 +6,11 @@
 //  Stored on ContentSource after each successful fetch.
 //
 
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 /// A combined fingerprint for a downloaded content pack.
 ///

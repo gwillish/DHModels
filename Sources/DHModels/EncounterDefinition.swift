@@ -15,7 +15,11 @@
 //    instances with mutable HP, Stress, and condition tracking.
 //
 
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 // MARK: - PlayerConfig
 
