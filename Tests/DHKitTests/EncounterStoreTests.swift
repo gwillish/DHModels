@@ -24,15 +24,15 @@ struct EncounterStoreErrorTests {
 
   @Test func saveFailedDescription() {
     let id = UUID()
-    let underlying = CocoaError(.fileWriteNoPermission)
-    let error = EncounterStoreError.saveFailed(id, underlying)
+    let error = EncounterStoreError.saveFailed(
+      id, CocoaError(.fileWriteNoPermission).localizedDescription)
     #expect(error.errorDescription?.hasPrefix("Failed to save encounter \(id):") == true)
   }
 
   @Test func deleteFailedDescription() {
     let id = UUID()
-    let underlying = CocoaError(.fileNoSuchFile)
-    let error = EncounterStoreError.deleteFailed(id, underlying)
+    let error = EncounterStoreError.deleteFailed(
+      id, CocoaError(.fileNoSuchFile).localizedDescription)
     #expect(error.errorDescription?.hasPrefix("Failed to delete encounter \(id):") == true)
   }
 }

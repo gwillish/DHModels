@@ -7,16 +7,31 @@ let sharedSettings: [SwiftSetting] = [
   .enableUpcomingFeature("MemberImportVisibility"),
 ]
 
-var products: [Product] = [
+let products: [Product] = [
   .library(name: "DHModels", targets: ["DHModels"]),
+  .library(name: "DHKit", targets: ["DHKit"]),
   .executable(name: "validate-dhpack", targets: ["validate-dhpack"]),
 ]
 
-var targets: [Target] = [
+let targets: [Target] = [
   // Pure Codable value types — no Apple-only imports, compiles on Linux.
   .target(
     name: "DHModels",
     swiftSettings: sharedSettings
+  ),
+
+  // Observable stores + SRD bundle resources.
+  .target(
+    name: "DHKit",
+    dependencies: [
+      "DHModels",
+      .product(name: "Logging", package: "swift-log"),
+    ],
+    resources: [
+      .copy("Resources/adversaries.json"),
+      .copy("Resources/environments.json"),
+    ],
+    swiftSettings: sharedSettings + [.defaultIsolation(MainActor.self)]
   ),
 
   // CLI tool for validating .dhpack files — depends only on DHModels.
@@ -36,33 +51,14 @@ var targets: [Target] = [
     resources: [.copy("Fixtures")],
     swiftSettings: sharedSettings
   ),
+
+  // Tests for DHKit.
+  .testTarget(
+    name: "DHKitTests",
+    dependencies: ["DHKit"],
+    swiftSettings: sharedSettings + [.defaultIsolation(MainActor.self)]
+  ),
 ]
-
-#if canImport(Darwin)
-  products.append(.library(name: "DHKit", targets: ["DHKit"]))
-  targets += [
-    // Observable stores + SRD bundle resources — Apple platforms only.
-    .target(
-      name: "DHKit",
-      dependencies: [
-        "DHModels",
-        .product(name: "Logging", package: "swift-log"),
-      ],
-      resources: [
-        .copy("Resources/adversaries.json"),
-        .copy("Resources/environments.json"),
-      ],
-      swiftSettings: sharedSettings + [.defaultIsolation(MainActor.self)]
-    ),
-
-    // Tests for DHKit — Apple platforms only.
-    .testTarget(
-      name: "DHKitTests",
-      dependencies: ["DHKit"],
-      swiftSettings: sharedSettings + [.defaultIsolation(MainActor.self)]
-    ),
-  ]
-#endif
 
 let package = Package(
   name: "DHModels",

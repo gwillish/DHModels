@@ -32,8 +32,8 @@ nonisolated public enum DifficultyBudget {
   /// - Leader: 3 points
   /// - Bruiser: 4 points
   /// - Solo: 5 points
-  public static func cost(for type: AdversaryType) -> Int {
-    switch type {
+  public static func cost(for role: AdversaryType) -> Int {
+    switch role {
     case .minion, .social, .support: return 1
     case .horde, .ranged, .skulk, .standard: return 2
     case .leader: return 3

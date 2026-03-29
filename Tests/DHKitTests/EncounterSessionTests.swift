@@ -56,7 +56,7 @@ import Testing
     session.add(adversary: soldier)
     let slot = session.adversarySlots[0]
 
-    session.applyDamage(4, to: slot)
+    session.applyDamage(4, to: slot.id)
     #expect(session.adversarySlots[0].currentHP == 2)
   }
 
@@ -66,7 +66,7 @@ import Testing
     session.add(adversary: soldier)
     let slot = session.adversarySlots[0]
 
-    session.applyDamage(100, to: slot)
+    session.applyDamage(100, to: slot.id)
     #expect(session.adversarySlots[0].currentHP == 0)
     #expect(session.adversarySlots[0].isDefeated == true)
     #expect(session.activeAdversaries.isEmpty)
@@ -95,7 +95,7 @@ import Testing
     #expect(session.isOver == false)
 
     let slot = session.adversarySlots[0]
-    session.applyDamage(999, to: slot)
+    session.applyDamage(999, to: slot.id)
     #expect(session.isOver == true)
   }
 
@@ -144,7 +144,7 @@ import Testing
     session.add(adversary: makeSoldier())
     let slot = session.adversarySlots[0]
 
-    session.applyCondition(.restrained, to: slot)
+    session.applyCondition(.restrained, to: slot.id)
     #expect(session.adversarySlots[0].conditions.contains(.restrained))
   }
 
@@ -153,8 +153,8 @@ import Testing
     session.add(adversary: makeSoldier())
     let slot = session.adversarySlots[0]
 
-    session.applyCondition(.hidden, to: slot)
-    session.removeCondition(.hidden, from: slot)
+    session.applyCondition(.hidden, to: slot.id)
+    session.removeCondition(.hidden, from: slot.id)
     #expect(!session.adversarySlots[0].conditions.contains(.hidden))
   }
 
@@ -163,8 +163,8 @@ import Testing
     session.add(adversary: makeSoldier())
     let slot = session.adversarySlots[0]
 
-    session.applyCondition(.vulnerable, to: slot)
-    session.applyCondition(.vulnerable, to: slot)
+    session.applyCondition(.vulnerable, to: slot.id)
+    session.applyCondition(.vulnerable, to: slot.id)
     #expect(session.adversarySlots[0].conditions.count == 1)
   }
 
@@ -173,7 +173,7 @@ import Testing
     session.add(adversary: makeSoldier())
     let slot = session.adversarySlots[0]
 
-    session.applyCondition(.custom(""), to: slot)
+    session.applyCondition(.custom(""), to: slot.id)
     #expect(session.adversarySlots[0].conditions.isEmpty)
   }
 
@@ -182,7 +182,7 @@ import Testing
     session.add(adversary: makeSoldier())
     let slot = session.adversarySlots[0]
 
-    session.applyCondition(.custom("   "), to: slot)
+    session.applyCondition(.custom("   "), to: slot.id)
     #expect(session.adversarySlots[0].conditions.isEmpty)
   }
 
@@ -191,7 +191,7 @@ import Testing
     session.add(adversary: makeSoldier())
     let slot = session.adversarySlots[0]
 
-    session.applyCondition(.custom("Enraged"), to: slot)
+    session.applyCondition(.custom("Enraged"), to: slot.id)
     #expect(session.adversarySlots[0].conditions.contains(.custom("Enraged")))
   }
 }
@@ -262,7 +262,7 @@ import Testing
     session.add(player: makePlayer())
     let slot = session.playerSlots[0]
 
-    session.applyDamage(2, to: slot)
+    session.applyDamage(2, to: slot.id)
     #expect(session.playerSlots[0].currentHP == 4)
   }
 
@@ -271,7 +271,7 @@ import Testing
     session.add(player: makePlayer())
     let slot = session.playerSlots[0]
 
-    session.applyDamage(100, to: slot)
+    session.applyDamage(100, to: slot.id)
     #expect(session.playerSlots[0].currentHP == 0)
   }
 
@@ -280,7 +280,7 @@ import Testing
     session.add(player: makePlayer())
     let slot = session.playerSlots[0]
 
-    session.applyStress(3, to: slot)
+    session.applyStress(3, to: slot.id)
     #expect(session.playerSlots[0].currentStress == 3)
   }
 
@@ -289,7 +289,7 @@ import Testing
     session.add(player: makePlayer())
     let slot = session.playerSlots[0]
 
-    session.applyStress(100, to: slot)
+    session.applyStress(100, to: slot.id)
     #expect(session.playerSlots[0].currentStress == 6)
   }
 
@@ -298,8 +298,8 @@ import Testing
     session.add(player: makePlayer())
     let slot = session.playerSlots[0]
 
-    session.applyDamage(4, to: slot)
-    session.heal(2, to: slot)
+    session.applyDamage(4, to: slot.id)
+    session.applyHealing(2, to: slot.id)
     #expect(session.playerSlots[0].currentHP == 4)
   }
 
@@ -308,8 +308,8 @@ import Testing
     session.add(player: makePlayer())
     let slot = session.playerSlots[0]
 
-    session.applyDamage(2, to: slot)
-    session.heal(100, to: slot)
+    session.applyDamage(2, to: slot.id)
+    session.applyHealing(100, to: slot.id)
     #expect(session.playerSlots[0].currentHP == 6)
   }
 
@@ -318,8 +318,8 @@ import Testing
     session.add(player: makePlayer())
     let slot = session.playerSlots[0]
 
-    session.applyStress(4, to: slot)
-    session.reduceStress(2, from: slot)
+    session.applyStress(4, to: slot.id)
+    session.reduceStress(2, from: slot.id)
     #expect(session.playerSlots[0].currentStress == 2)
   }
 
@@ -353,7 +353,7 @@ import Testing
     session.add(player: makePlayer())
     let slot = session.playerSlots[0]
 
-    session.applyCondition(.custom(""), to: slot)
+    session.applyCondition(.custom(""), to: slot.id)
     #expect(session.playerSlots[0].conditions.isEmpty)
   }
 
@@ -362,7 +362,7 @@ import Testing
     session.add(player: makePlayer())
     let slot = session.playerSlots[0]
 
-    session.applyCondition(.vulnerable, to: slot)
+    session.applyCondition(.vulnerable, to: slot.id)
     #expect(session.playerSlots[0].conditions.contains(.vulnerable))
   }
 
@@ -371,8 +371,8 @@ import Testing
     session.add(player: makePlayer())
     let slot = session.playerSlots[0]
 
-    session.applyCondition(.hidden, to: slot)
-    session.removeCondition(.hidden, from: slot)
+    session.applyCondition(.hidden, to: slot.id)
+    session.removeCondition(.hidden, from: slot.id)
     #expect(!session.playerSlots[0].conditions.contains(.hidden))
   }
 
@@ -483,7 +483,8 @@ import Testing
   }
 
   @Test func slotSnapshotsMaxHPAndMaxStress() {
-    let slot = AdversarySlot.make(from: makeSoldier())
+    let soldier = makeSoldier()
+    let slot = AdversarySlot(adversaryID: soldier.id, maxHP: soldier.hp, maxStress: soldier.stress)
     #expect(slot.maxHP == 6)
     #expect(slot.maxStress == 3)
   }
@@ -493,7 +494,7 @@ import Testing
     session.add(adversary: makeSoldier())
     let slot = session.adversarySlots[0]
 
-    session.applyStress(100, to: slot)
+    session.applyStress(100, to: slot.id)
     #expect(session.adversarySlots[0].currentStress == 3)
   }
 
@@ -502,8 +503,8 @@ import Testing
     session.add(adversary: makeSoldier())
     let slot = session.adversarySlots[0]
 
-    session.applyStress(1, to: slot)
-    session.applyStress(1, to: slot)
+    session.applyStress(1, to: slot.id)
+    session.applyStress(1, to: slot.id)
     #expect(session.adversarySlots[0].currentStress == 2)
   }
 
@@ -512,8 +513,8 @@ import Testing
     session.add(adversary: makeSoldier())
     let slot = session.adversarySlots[0]
 
-    session.applyDamage(4, to: slot)
-    session.heal(100, to: slot)
+    session.applyDamage(4, to: slot.id)
+    session.applyHealing(100, to: slot.id)
     #expect(session.adversarySlots[0].currentHP == 6)
   }
 
@@ -522,9 +523,9 @@ import Testing
     session.add(adversary: makeSoldier())
     let slot = session.adversarySlots[0]
 
-    session.applyDamage(999, to: slot)
+    session.applyDamage(999, to: slot.id)
     #expect(session.adversarySlots[0].isDefeated == true)
-    session.heal(6, to: slot)
+    session.applyHealing(6, to: slot.id)
     #expect(session.adversarySlots[0].isDefeated == false)
     #expect(session.adversarySlots[0].currentHP == 6)
   }

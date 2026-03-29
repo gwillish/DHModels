@@ -66,7 +66,7 @@ import Testing
     let def1 = makeDefinition(adversaryIDs: ["goblin"])
 
     let s1 = registry.session(for: def1.id, definition: def1, compendium: compendium)
-    s1.applyDamage(2, to: s1.adversarySlots[0])
+    s1.applyDamage(2, to: s1.adversarySlots[0].id)
     #expect(s1.adversarySlots[0].currentHP == 1)
 
     let s2 = registry.resetSession(for: def1.id, definition: def1, compendium: compendium)

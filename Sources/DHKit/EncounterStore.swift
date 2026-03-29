@@ -22,19 +22,19 @@ import Observation
 // MARK: - EncounterStoreError
 
 /// Errors thrown by ``EncounterStore`` operations.
-public enum EncounterStoreError: Error, LocalizedError {
+public enum EncounterStoreError: Error, LocalizedError, Sendable {
   case notFound(UUID)
-  case saveFailed(UUID, Error)
-  case deleteFailed(UUID, Error)
+  case saveFailed(UUID, String)
+  case deleteFailed(UUID, String)
 
   public var errorDescription: String? {
     switch self {
     case .notFound(let id):
       return "No encounter definition found with ID \(id)."
-    case .saveFailed(let id, let underlying):
-      return "Failed to save encounter \(id): \(underlying.localizedDescription)"
-    case .deleteFailed(let id, let underlying):
-      return "Failed to delete encounter \(id): \(underlying.localizedDescription)"
+    case .saveFailed(let id, let description):
+      return "Failed to save encounter \(id): \(description)"
+    case .deleteFailed(let id, let description):
+      return "Failed to delete encounter \(id): \(description)"
     }
   }
 }
@@ -80,6 +80,12 @@ public final class EncounterStore {
 
   /// Non-nil if the last `load()` failed at the directory level.
   public private(set) var loadError: (any Error)?
+
+  // MARK: Reentrancy tracking
+  private var savesInFlight: Set<UUID> = []
+  private var deletesInFlight: Set<UUID> = []
+  private var duplicatesInFlight: Set<UUID> = []
+  private var createInFlight = false
 
   // MARK: - Init
 
@@ -196,6 +202,9 @@ public final class EncounterStore {
   /// Creates a new ``EncounterDefinition``, persists it, and inserts it
   /// into ``definitions``.
   public func create(name: String) async throws {
+    guard !createInFlight else { return }
+    createInFlight = true
+    defer { createInFlight = false }
     let def = EncounterDefinition(name: name)
     try await persist(def)
     insertSorted(def)
@@ -212,6 +221,9 @@ public final class EncounterStore {
   /// - Throws: ``EncounterStoreError/notFound(_:)`` if the ID is not in
   ///   the current ``definitions``.
   public func save(_ definition: EncounterDefinition) async throws {
+    guard !savesInFlight.contains(definition.id) else { return }
+    savesInFlight.insert(definition.id)
+    defer { savesInFlight.remove(definition.id) }
     guard definitions.contains(where: { $0.id == definition.id }) else {
       throw EncounterStoreError.notFound(definition.id)
     }
@@ -227,6 +239,9 @@ public final class EncounterStore {
   ///
   /// - Throws: ``EncounterStoreError/notFound(_:)`` if the ID is unknown.
   public func delete(id: UUID) async throws {
+    guard !deletesInFlight.contains(id) else { return }
+    deletesInFlight.insert(id)
+    defer { deletesInFlight.remove(id) }
     guard definitions.contains(where: { $0.id == id }) else {
       throw EncounterStoreError.notFound(id)
     }
@@ -234,7 +249,7 @@ public final class EncounterStore {
     do {
       try await Self.deleteEncounter(at: url)
     } catch {
-      throw EncounterStoreError.deleteFailed(id, error)
+      throw EncounterStoreError.deleteFailed(id, error.localizedDescription)
     }
     definitions.removeAll { $0.id == id }
   }
@@ -254,6 +269,9 @@ public final class EncounterStore {
   ///
   /// - Throws: ``EncounterStoreError/notFound(_:)`` if the source ID is unknown.
   public func duplicate(id: UUID) async throws {
+    guard !duplicatesInFlight.contains(id) else { return }
+    duplicatesInFlight.insert(id)
+    defer { duplicatesInFlight.remove(id) }
     guard let original = definitions.first(where: { $0.id == id }) else {
       throw EncounterStoreError.notFound(id)
     }
@@ -279,7 +297,7 @@ public final class EncounterStore {
     do {
       try await Self.writeEncounter(definition, to: url)
     } catch {
-      throw EncounterStoreError.saveFailed(definition.id, error)
+      throw EncounterStoreError.saveFailed(definition.id, error.localizedDescription)
     }
   }
 

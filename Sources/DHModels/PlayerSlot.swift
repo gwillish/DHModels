@@ -19,17 +19,17 @@ import Foundation
 ///
 /// Tracks combat-relevant PC stats the GM needs to resolve hits and
 /// track health during play. The full character sheet remains with the player.
-nonisolated public struct PlayerSlot: CombatParticipant, Sendable, Equatable, Hashable {
+public struct PlayerSlot: CombatParticipant, Sendable, Equatable, Hashable {
   public let id: UUID
-  public var name: String
+  public let name: String
 
   // MARK: Hit Points
   public let maxHP: Int
-  public var currentHP: Int
+  public let currentHP: Int
 
   // MARK: Stress
   public let maxStress: Int
-  public var currentStress: Int
+  public let currentStress: Int
 
   // MARK: Defense
   /// The DC for all rolls made against this PC.
@@ -43,10 +43,10 @@ nonisolated public struct PlayerSlot: CombatParticipant, Sendable, Equatable, Ha
   /// Total Armor Score (number of Armor Slots available).
   public let armorSlots: Int
   /// Remaining unused Armor Slots.
-  public var currentArmorSlots: Int
+  public let currentArmorSlots: Int
 
   // MARK: Conditions
-  public var conditions: Set<Condition>
+  public let conditions: Set<Condition>
 
   // MARK: - Init
 
