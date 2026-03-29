@@ -201,6 +201,10 @@ public final class EncounterStore {
 
   /// Creates a new ``EncounterDefinition``, persists it, and inserts it
   /// into ``definitions``.
+  ///
+  /// If a create operation is already in flight, this call returns immediately
+  /// without creating a second definition. Callers that need to ensure creation
+  /// occurred should await this call to completion before calling again.
   public func create(name: String) async throws {
     guard !createInFlight else { return }
     createInFlight = true
@@ -242,6 +246,10 @@ public final class EncounterStore {
 
   /// Removes a definition from memory and deletes its backing file.
   ///
+  /// If a delete for the same ID is already in flight, this call returns
+  /// immediately. Callers that need to ensure deletion occurred should await
+  /// the first call to completion before calling again.
+  ///
   /// - Throws: ``EncounterStoreError/notFound(_:)`` if the ID is unknown.
   public func delete(id: UUID) async throws {
     guard !deletesInFlight.contains(id) else { return }
@@ -264,6 +272,10 @@ public final class EncounterStore {
   /// Creates an independent copy of an existing definition with a new UUID,
   /// `createdAt`, and a `" (Copy)"` suffix on the name. Persists it and
   /// adds it to ``definitions``.
+  ///
+  /// If a duplicate for the same source ID is already in flight, this call
+  /// returns immediately without creating a second copy. Callers that need
+  /// a second copy should await the first call to completion before calling again.
   ///
   /// The copy is inserted with `createdAt = modifiedAt = .now`, so it sorts
   /// to the top of ``definitions``.

@@ -109,7 +109,7 @@ import Testing
     session.add(adversary: makeSoldier())
     let slot = session.adversarySlots[0]
 
-    session.spotlight(slot)
+    session.spotlight(id: slot.id)
     #expect(session.spotlightCount == 1)
     #expect(session.spotlightedSlotID == slot.id)
 
@@ -125,8 +125,8 @@ import Testing
     let first = session.adversarySlots[0]
     let second = session.adversarySlots[1]
 
-    session.spotlight(first)
-    session.spotlight(second)
+    session.spotlight(id: first.id)
+    session.spotlight(id: second.id)
     #expect(session.spotlightCount == 2)
     #expect(session.spotlightedSlotID == second.id)
   }
@@ -250,10 +250,10 @@ import Testing
     let adversarySlot = session.adversarySlots[0]
     let playerSlot = session.playerSlots[0]
 
-    session.spotlight(adversarySlot)
+    session.spotlight(id: adversarySlot.id)
     #expect(session.spotlightedSlotID == adversarySlot.id)
 
-    session.spotlight(playerSlot)
+    session.spotlight(id: playerSlot.id)
     #expect(session.spotlightedSlotID == playerSlot.id)
   }
 

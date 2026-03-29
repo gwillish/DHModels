@@ -30,4 +30,15 @@ public struct EnvironmentSlot: EncounterParticipant, Sendable, Equatable, Hashab
     self.environmentID = environmentID
     self.isActive = isActive
   }
+
+  /// Returns a copy of this slot with the specified mutable fields replaced.
+  ///
+  /// Omit any parameter to preserve the existing value.
+  public func applying(isActive: Bool? = nil) -> EnvironmentSlot {
+    EnvironmentSlot(
+      id: id,
+      environmentID: environmentID,
+      isActive: isActive ?? self.isActive
+    )
+  }
 }

@@ -117,13 +117,7 @@ public final class EncounterSession: Identifiable, Hashable {
 
   /// Add a new adversary slot populated from a catalog entry.
   public func add(adversary: Adversary, customName: String? = nil) {
-    _adversarySlots.append(
-      AdversarySlot(
-        adversaryID: adversary.id,
-        customName: customName,
-        maxHP: adversary.hp,
-        maxStress: adversary.stress
-      ))
+    _adversarySlots.append(AdversarySlot(from: adversary, customName: customName))
   }
 
   /// Add an environment slot.
@@ -157,8 +151,8 @@ public final class EncounterSession: Identifiable, Hashable {
   /// Increments ``spotlightCount`` on every call. The GM typically
   /// spends 1 Fear (tracked separately on ``fearPool``) when seizing
   /// the spotlight to act.
-  public func spotlight(_ participant: some EncounterParticipant) {
-    spotlightedSlotID = participant.id
+  public func spotlight(id: UUID) {
+    spotlightedSlotID = id
     spotlightCount += 1
   }
 
@@ -178,7 +172,7 @@ public final class EncounterSession: Identifiable, Hashable {
     if let i = _adversarySlots.firstIndex(where: { $0.id == id }) {
       let s = _adversarySlots[i]
       let newHP = max(0, s.currentHP - amount)
-      _adversarySlots[i] = s.applying(currentHP: newHP, isDefeated: newHP == 0)
+      _adversarySlots[i] = s.applying(currentHP: newHP, isDefeated: newHP == 0 ? true : nil)
       if newHP == 0 {
         logger.info("Slot \(id) defeated")
       } else {
@@ -264,7 +258,9 @@ public final class EncounterSession: Identifiable, Hashable {
       var updated = _playerSlots[i].conditions
       updated.insert(condition)
       _playerSlots[i] = _playerSlots[i].applying(conditions: updated)
+      return
     }
+    logger.warning("applyCondition: no slot found for id \(id)")
   }
 
   /// Remove a condition from a combat participant by ID.
@@ -279,7 +275,9 @@ public final class EncounterSession: Identifiable, Hashable {
       var updated = _playerSlots[i].conditions
       updated.remove(condition)
       _playerSlots[i] = _playerSlots[i].applying(conditions: updated)
+      return
     }
+    logger.warning("removeCondition: no slot found for id \(id)")
   }
 
   // MARK: - Armor Slot Management
@@ -347,8 +345,7 @@ public final class EncounterSession: Identifiable, Hashable {
   ) -> EncounterSession {
     let adversarySlots: [AdversarySlot] = definition.adversaryIDs.compactMap { id in
       guard let adversary = compendium.adversary(id: id) else { return nil }
-      return AdversarySlot(
-        adversaryID: adversary.id, maxHP: adversary.hp, maxStress: adversary.stress)
+      return AdversarySlot(from: adversary)
     }
 
     let environmentSlots: [EnvironmentSlot] = definition.environmentIDs.compactMap { id in

@@ -61,6 +61,16 @@ public struct AdversarySlot: CombatParticipant, Sendable, Equatable, Hashable {
     self.conditions = conditions
   }
 
+  /// Convenience initializer: creates a slot pre-populated from a catalog entry.
+  public init(from adversary: Adversary, customName: String? = nil) {
+    self.init(
+      adversaryID: adversary.id,
+      customName: customName,
+      maxHP: adversary.hp,
+      maxStress: adversary.stress
+    )
+  }
+
   /// Returns a copy of this slot with the specified mutable fields replaced.
   ///
   /// Omit any parameter to preserve the existing value. This is the preferred
