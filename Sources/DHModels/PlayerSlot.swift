@@ -19,17 +19,17 @@ import Foundation
 ///
 /// Tracks combat-relevant PC stats the GM needs to resolve hits and
 /// track health during play. The full character sheet remains with the player.
-nonisolated public struct PlayerSlot: CombatParticipant, Sendable, Equatable, Hashable {
+public struct PlayerSlot: CombatParticipant, Sendable, Equatable, Hashable {
   public let id: UUID
-  public var name: String
+  public let name: String
 
   // MARK: Hit Points
   public let maxHP: Int
-  public var currentHP: Int
+  public let currentHP: Int
 
   // MARK: Stress
   public let maxStress: Int
-  public var currentStress: Int
+  public let currentStress: Int
 
   // MARK: Defense
   /// The DC for all rolls made against this PC.
@@ -43,10 +43,10 @@ nonisolated public struct PlayerSlot: CombatParticipant, Sendable, Equatable, Ha
   /// Total Armor Score (number of Armor Slots available).
   public let armorSlots: Int
   /// Remaining unused Armor Slots.
-  public var currentArmorSlots: Int
+  public let currentArmorSlots: Int
 
   // MARK: Conditions
-  public var conditions: Set<Condition>
+  public let conditions: Set<Condition>
 
   // MARK: - Init
 
@@ -76,5 +76,26 @@ nonisolated public struct PlayerSlot: CombatParticipant, Sendable, Equatable, Ha
     self.armorSlots = armorSlots
     self.currentArmorSlots = currentArmorSlots ?? armorSlots
     self.conditions = conditions
+  }
+
+  /// Returns a copy of this slot with the specified mutable fields replaced.
+  ///
+  /// Omit any parameter to preserve the existing value. This is the preferred
+  /// way to produce updated copies; it avoids repeating every unchanged field
+  /// at mutation sites in ``EncounterSession``.
+  public func applying(
+    currentHP: Int? = nil,
+    currentStress: Int? = nil,
+    currentArmorSlots: Int? = nil,
+    conditions: Set<Condition>? = nil
+  ) -> PlayerSlot {
+    PlayerSlot(
+      id: id, name: name,
+      maxHP: maxHP, currentHP: currentHP ?? self.currentHP,
+      maxStress: maxStress, currentStress: currentStress ?? self.currentStress,
+      evasion: evasion, thresholdMajor: thresholdMajor, thresholdSevere: thresholdSevere,
+      armorSlots: armorSlots, currentArmorSlots: currentArmorSlots ?? self.currentArmorSlots,
+      conditions: conditions ?? self.conditions
+    )
   }
 }

@@ -32,8 +32,8 @@ nonisolated public enum DifficultyBudget {
   /// - Leader: 3 points
   /// - Bruiser: 4 points
   /// - Solo: 5 points
-  public static func cost(for type: AdversaryType) -> Int {
-    switch type {
+  public static func cost(for role: AdversaryType) -> Int {
+    switch role {
     case .minion, .social, .support: return 1
     case .horde, .ranged, .skulk, .standard: return 2
     case .leader: return 3
@@ -65,13 +65,13 @@ nonisolated public enum DifficultyBudget {
     /// Total Battle Points available (base budget + adjustment).
     public let budget: Int
     /// Total Battle Points spent on the adversary roster.
-    public let totalCost: Int
+    public let cost: Int
     /// Budget minus cost. Negative means over-budget.
     public let remaining: Int
 
-    public init(budget: Int, totalCost: Int, remaining: Int) {
+    public init(budget: Int, cost: Int, remaining: Int) {
       self.budget = budget
-      self.totalCost = totalCost
+      self.cost = cost
       self.remaining = remaining
     }
   }
@@ -90,7 +90,7 @@ nonisolated public enum DifficultyBudget {
   ) -> Rating {
     let budget = baseBudget(playerCount: playerCount) + budgetAdjustment
     let cost = totalCost(for: adversaryTypes)
-    return Rating(budget: budget, totalCost: cost, remaining: budget - cost)
+    return Rating(budget: budget, cost: cost, remaining: budget - cost)
   }
 
   // MARK: - Adjustment Suggestions

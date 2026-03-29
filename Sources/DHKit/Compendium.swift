@@ -246,13 +246,13 @@ public final class Compendium {
   }
 
   /// Return all adversaries of a given role.
-  public func adversaries(ofType role: AdversaryType) -> [Adversary] {
+  public func adversaries(ofRole role: AdversaryType) -> [Adversary] {
     adversaries.filter { $0.role == role }
   }
 
   /// Full-text search across adversary names and descriptions.
   /// Uses `localizedStandardContains` for diacritic- and case-insensitive matching.
-  public func searchAdversaries(query: String) -> [Adversary] {
+  public func adversaries(matching query: String) -> [Adversary] {
     guard !query.isEmpty else { return adversaries }
     return adversaries.filter {
       $0.name.localizedStandardContains(query) || $0.flavorText.localizedStandardContains(query)
@@ -336,7 +336,7 @@ public final class Compendium {
 
   // MARK: - Private Helpers
 
-  nonisolated private static func decodeArray<T: Decodable>(
+  @concurrent nonisolated private static func decodeArray<T: Decodable>(
     _ type: T.Type, fromResource name: String, bundle: Bundle
   ) async throws -> [T] {
     guard let url = bundle.url(forResource: name, withExtension: "json") else {

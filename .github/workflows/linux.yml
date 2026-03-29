@@ -20,11 +20,17 @@ jobs:
       - name: Build DHModels
         run: swift build --target DHModels
 
+      - name: Build DHKit
+        run: swift build --target DHKit
+
       - name: Build validate-dhpack
         run: swift build --target validate-dhpack
 
       - name: Test DHModels
         run: swift test --filter DHModelsTests
+
+      - name: Test DHKit
+        run: swift test --filter DHKitTests
 
   swift-format:
     name: swift-format lint

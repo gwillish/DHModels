@@ -22,19 +22,19 @@ import Observation
 // MARK: - EncounterStoreError
 
 /// Errors thrown by ``EncounterStore`` operations.
-public enum EncounterStoreError: Error, LocalizedError {
+public enum EncounterStoreError: Error, LocalizedError, Sendable {
   case notFound(UUID)
-  case saveFailed(UUID, Error)
-  case deleteFailed(UUID, Error)
+  case saveFailed(UUID, String)
+  case deleteFailed(UUID, String)
 
   public var errorDescription: String? {
     switch self {
     case .notFound(let id):
       return "No encounter definition found with ID \(id)."
-    case .saveFailed(let id, let underlying):
-      return "Failed to save encounter \(id): \(underlying.localizedDescription)"
-    case .deleteFailed(let id, let underlying):
-      return "Failed to delete encounter \(id): \(underlying.localizedDescription)"
+    case .saveFailed(let id, let description):
+      return "Failed to save encounter \(id): \(description)"
+    case .deleteFailed(let id, let description):
+      return "Failed to delete encounter \(id): \(description)"
     }
   }
 }
@@ -81,6 +81,12 @@ public final class EncounterStore {
   /// Non-nil if the last `load()` failed at the directory level.
   public private(set) var loadError: (any Error)?
 
+  // MARK: Reentrancy tracking
+  private var savesInFlight: Set<UUID> = []
+  private var deletesInFlight: Set<UUID> = []
+  private var duplicatesInFlight: Set<UUID> = []
+  private var createInFlight = false
+
   // MARK: - Init
 
   public init(directory: URL) {
@@ -101,15 +107,17 @@ public final class EncounterStore {
 
   @concurrent
   nonisolated private static func resolveDefaultDirectory() async -> URL {
-    let fm = FileManager.default
-    if let ubiquity = fm.url(forUbiquityContainerIdentifier: nil) {
-      let dir =
-        ubiquity
-        .appending(path: "Documents")
-        .appending(path: "Encounters")
-      try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
-      return dir
-    }
+    #if canImport(Darwin)
+      let fm = FileManager.default
+      if let ubiquity = fm.url(forUbiquityContainerIdentifier: nil) {
+        let dir =
+          ubiquity
+          .appending(path: "Documents")
+          .appending(path: "Encounters")
+        try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir
+      }
+    #endif
     return Self.localDirectory
   }
 
@@ -155,7 +163,10 @@ public final class EncounterStore {
 
   /// Local Application Support directory. A pure URL — no file I/O performed.
   nonisolated public static var localDirectory: URL {
-    URL.applicationSupportDirectory.appending(path: "Encounters")
+    let base =
+      FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+      ?? FileManager.default.temporaryDirectory
+    return base.appending(path: "Encounters")
   }
 
   /// Switches the storage directory and clears `definitions`.
@@ -195,7 +206,14 @@ public final class EncounterStore {
 
   /// Creates a new ``EncounterDefinition``, persists it, and inserts it
   /// into ``definitions``.
+  ///
+  /// If a create operation is already in flight, this call returns immediately
+  /// without creating a second definition. Callers that need to ensure creation
+  /// occurred should await this call to completion before calling again.
   public func create(name: String) async throws {
+    guard !createInFlight else { return }
+    createInFlight = true
+    defer { createInFlight = false }
     let def = EncounterDefinition(name: name)
     try await persist(def)
     insertSorted(def)
@@ -209,9 +227,17 @@ public final class EncounterStore {
   /// invariant is maintained regardless of whether the caller has updated
   /// individual properties through their `didSet` observers.
   ///
+  /// If a save for the same definition ID is already in flight, this call
+  /// returns immediately without writing or queuing. Callers that need to
+  /// ensure the latest value is persisted should await the first save before
+  /// calling again.
+  ///
   /// - Throws: ``EncounterStoreError/notFound(_:)`` if the ID is not in
   ///   the current ``definitions``.
   public func save(_ definition: EncounterDefinition) async throws {
+    guard !savesInFlight.contains(definition.id) else { return }
+    savesInFlight.insert(definition.id)
+    defer { savesInFlight.remove(definition.id) }
     guard definitions.contains(where: { $0.id == definition.id }) else {
       throw EncounterStoreError.notFound(definition.id)
     }
@@ -225,8 +251,15 @@ public final class EncounterStore {
 
   /// Removes a definition from memory and deletes its backing file.
   ///
+  /// If a delete for the same ID is already in flight, this call returns
+  /// immediately. Callers that need to ensure deletion occurred should await
+  /// the first call to completion before calling again.
+  ///
   /// - Throws: ``EncounterStoreError/notFound(_:)`` if the ID is unknown.
   public func delete(id: UUID) async throws {
+    guard !deletesInFlight.contains(id) else { return }
+    deletesInFlight.insert(id)
+    defer { deletesInFlight.remove(id) }
     guard definitions.contains(where: { $0.id == id }) else {
       throw EncounterStoreError.notFound(id)
     }
@@ -234,7 +267,7 @@ public final class EncounterStore {
     do {
       try await Self.deleteEncounter(at: url)
     } catch {
-      throw EncounterStoreError.deleteFailed(id, error)
+      throw EncounterStoreError.deleteFailed(id, error.localizedDescription)
     }
     definitions.removeAll { $0.id == id }
   }
@@ -245,6 +278,10 @@ public final class EncounterStore {
   /// `createdAt`, and a `" (Copy)"` suffix on the name. Persists it and
   /// adds it to ``definitions``.
   ///
+  /// If a duplicate for the same source ID is already in flight, this call
+  /// returns immediately without creating a second copy. Callers that need
+  /// a second copy should await the first call to completion before calling again.
+  ///
   /// The copy is inserted with `createdAt = modifiedAt = .now`, so it sorts
   /// to the top of ``definitions``.
   ///
@@ -254,6 +291,9 @@ public final class EncounterStore {
   ///
   /// - Throws: ``EncounterStoreError/notFound(_:)`` if the source ID is unknown.
   public func duplicate(id: UUID) async throws {
+    guard !duplicatesInFlight.contains(id) else { return }
+    duplicatesInFlight.insert(id)
+    defer { duplicatesInFlight.remove(id) }
     guard let original = definitions.first(where: { $0.id == id }) else {
       throw EncounterStoreError.notFound(id)
     }
@@ -279,7 +319,7 @@ public final class EncounterStore {
     do {
       try await Self.writeEncounter(definition, to: url)
     } catch {
-      throw EncounterStoreError.saveFailed(definition.id, error)
+      throw EncounterStoreError.saveFailed(definition.id, error.localizedDescription)
     }
   }
 

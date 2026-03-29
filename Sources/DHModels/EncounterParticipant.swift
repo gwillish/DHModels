@@ -16,13 +16,12 @@ public protocol EncounterParticipant: Identifiable where ID == UUID {}
 
 /// An encounter participant that tracks HP, Stress, and Conditions.
 ///
-/// Conformed to by ``AdversarySlot`` and ``PlayerSlot``. Enables
-/// unified combat mutation methods on ``EncounterSession`` without
-/// requiring separate adversary- and player-specific overloads.
+/// Conformed to by ``AdversarySlot`` and ``PlayerSlot``. Used as a read/display
+/// contract; all mutations are performed by ``EncounterSession`` via UUID.
 public protocol CombatParticipant: EncounterParticipant {
-  var currentHP: Int { get set }
+  var currentHP: Int { get }
   var maxHP: Int { get }
-  var currentStress: Int { get set }
+  var currentStress: Int { get }
   var maxStress: Int { get }
-  var conditions: Set<Condition> { get set }
+  var conditions: Set<Condition> { get }
 }
