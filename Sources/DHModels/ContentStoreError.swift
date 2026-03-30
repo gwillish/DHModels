@@ -5,10 +5,10 @@
 //  Typed errors for ContentStore, ContentFetcher, and ContentWriter.
 //
 
-#if canImport(FoundationEssentials)
-import FoundationEssentials
-#else
 import Foundation
+
+#if canImport(FoundationEssentials)
+  import FoundationEssentials
 #endif
 
 /// Errors produced by the content loading and update pipeline.
@@ -29,15 +29,15 @@ nonisolated public enum ContentStoreError: Error, LocalizedError, Sendable {
   public var errorDescription: String? {
     switch self {
     case .fetchThrottled(let id, let until):
-      return "Source '\(id)' is throttled until \(until.formatted(.dateTime))."
+      return "Source '\(id)' is throttled until \(until.description)."
     case .networkError(let id, let error):
-      return "Network error for '\(id)': \(error.localizedDescription)"
+      return "Network error for '\(id)': \(error)"
     case .decodingFailed(let id, let error):
-      return "Decode failed for '\(id)': \(error.localizedDescription)"
+      return "Decode failed for '\(id)': \(error)"
     case .writeFailed(let id, let error):
-      return "Write failed for '\(id)': \(error.localizedDescription)"
+      return "Write failed for '\(id)': \(error)"
     case .readFailed(let id, let error):
-      return "Read failed for '\(id)': \(error.localizedDescription)"
+      return "Read failed for '\(id)': \(error)"
     case .invalidContent(let id, let reason):
       return "Invalid content from '\(id)': \(reason)"
     }

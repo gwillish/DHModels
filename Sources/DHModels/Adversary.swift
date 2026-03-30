@@ -13,10 +13,10 @@
 //  See docs/data-schema.md for full field reference and source notes.
 //
 
-#if canImport(FoundationEssentials)
-import FoundationEssentials
-#else
 import Foundation
+
+#if canImport(FoundationEssentials)
+  import FoundationEssentials
 #endif
 
 // MARK: - AdversaryType
@@ -145,7 +145,7 @@ nonisolated public struct EncounterFeature: Codable, Identifiable, Sendable, Equ
 ///
 /// This is a **catalog model** — it represents the static definition of an
 /// adversary, not a live instance being tracked in an encounter.
-/// See ``AdversarySlot`` in `EncounterSession.swift` for the runtime type.
+/// See ``AdversaryState`` in `EncounterSession.swift` for the runtime type.
 ///
 /// ## JSON Compatibility
 /// The `thresholds` field is stored in community JSON as a single
@@ -225,8 +225,9 @@ nonisolated public struct Adversary: Codable, Identifiable, Sendable, Equatable,
   /// Derives a URL-safe slug from a display name, e.g. "Acid Burrower" → "acid-burrower".
   private static func slug(_ name: String) -> String {
     name.lowercased()
-      .components(separatedBy: CharacterSet.alphanumerics.inverted)
+      .split(whereSeparator: { !$0.isLetter && !$0.isNumber })
       .filter { !$0.isEmpty }
+      .map { String($0) }
       .joined(separator: "-")
   }
 
@@ -294,7 +295,7 @@ nonisolated public struct Adversary: Codable, Identifiable, Sendable, Equatable,
         let parts =
           raw
           .split(separator: "/")
-          .map { $0.trimmingCharacters(in: .whitespaces) }
+          .map { String($0).filter { !$0.isWhitespace } }
         guard parts.count == 2 else {
           throw DecodingError.dataCorruptedError(
             forKey: .thresholds, in: c,

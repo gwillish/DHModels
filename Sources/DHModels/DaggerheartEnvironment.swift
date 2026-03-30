@@ -15,10 +15,10 @@
 //  See docs/data-schema.md for the full field reference.
 //
 
-#if canImport(FoundationEssentials)
-import FoundationEssentials
-#else
 import Foundation
+
+#if canImport(FoundationEssentials)
+  import FoundationEssentials
 #endif
 
 /// A Daggerheart environment — a scene element with features but no HP or Stress.
@@ -64,8 +64,9 @@ nonisolated public struct DaggerheartEnvironment: Codable, Identifiable, Sendabl
     id =
       try c.decodeIfPresent(String.self, forKey: .id)
       ?? name.lowercased()
-      .components(separatedBy: CharacterSet.alphanumerics.inverted)
+      .split(whereSeparator: { !$0.isLetter && !$0.isNumber })
       .filter { !$0.isEmpty }
+      .map { String($0) }
       .joined(separator: "-")
     // Normalize source to lowercase so "SRD", "srd", "Homebrew", etc. all compare equal.
     source = (try c.decodeIfPresent(String.self, forKey: .source) ?? "srd").lowercased()

@@ -13,10 +13,10 @@
 //  Then apply adjustments and spend points to add adversaries by type.
 //
 
-#if canImport(FoundationEssentials)
-import FoundationEssentials
-#else
 import Foundation
+
+#if canImport(FoundationEssentials)
+  import FoundationEssentials
 #endif
 
 /// Pure-function namespace for computing Daggerheart encounter difficulty

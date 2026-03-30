@@ -7,10 +7,10 @@
 //
 
 import DHModels
-#if canImport(FoundationEssentials)
-import FoundationEssentials
-#else
 import Foundation
+
+#if canImport(FoundationEssentials)
+  import FoundationEssentials
 #endif
 
 /// A participant in a Daggerheart encounter that can hold the spotlight.
@@ -21,7 +21,7 @@ nonisolated public protocol EncounterParticipant: Identifiable where ID == UUID 
 
 /// An encounter participant that tracks HP, Stress, and Conditions.
 ///
-/// Conformed to by ``AdversarySlot`` and ``PlayerSlot``. Used as a read/display
+/// Conformed to by ``AdversaryState`` and ``PlayerState``. Used as a read/display
 /// contract; all mutations are performed by ``EncounterSession`` via UUID.
 nonisolated public protocol CombatParticipant: EncounterParticipant {
   var currentHP: Int { get }

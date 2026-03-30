@@ -1,9 +1,9 @@
 import ArgumentParser
 import DHModels
-#if canImport(FoundationEssentials)
-import FoundationEssentials
-#else
 import Foundation
+
+#if canImport(FoundationEssentials)
+  import FoundationEssentials
 #endif
 
 // validate-dhpack — validates one or more .dhpack files against the DaggerheartModels schema.
@@ -40,7 +40,7 @@ struct ValidateDHPack: ParsableCommand {
         )
       } catch {
         FileHandle.standardError.write(
-          Data("\(path): FAILED — \(error.localizedDescription)\n".utf8))
+          Data("\(path): FAILED — \(error)\n".utf8))
         failed = true
       }
     }

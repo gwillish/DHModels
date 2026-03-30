@@ -135,7 +135,7 @@ Use this decision tree to choose the right target:
   or be referenced by `validate-dhpack`. Test in `DHModelsTests`.
 - **`DHKit`** — everything else on Apple platforms: `@Observable` stores
   (`Compendium`, `EncounterStore`, `SessionRegistry`), live session types
-  (`EncounterSession`, `AdversarySlot`, `PlayerSlot`, `EnvironmentSlot`,
+  (`EncounterSession`, `AdversaryState`, `PlayerState`, `EnvironmentState`,
   `EncounterParticipant`/`CombatParticipant`), and any type that requires
   `@MainActor`, iCloud/FileManager persistence, or other Apple-only
   infrastructure. Test in `DHKitTests`.

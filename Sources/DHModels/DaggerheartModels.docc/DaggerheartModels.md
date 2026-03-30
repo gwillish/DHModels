@@ -30,7 +30,7 @@ ecosystem.
 ### Encounters
 
 - ``EncounterDefinition``
-- ``PlayerSlot``
+- ``PlayerConfig``
 - ``DifficultyBudget``
 - ``Condition``
 

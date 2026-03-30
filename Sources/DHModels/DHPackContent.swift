@@ -7,10 +7,10 @@
 //  compatible with the seansbox/daggerheart-srd format (see ADR-0024).
 //
 
-#if canImport(FoundationEssentials)
-import FoundationEssentials
-#else
 import Foundation
+
+#if canImport(FoundationEssentials)
+  import FoundationEssentials
 #endif
 
 #if canImport(UniformTypeIdentifiers)

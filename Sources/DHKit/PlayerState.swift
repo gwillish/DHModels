@@ -1,5 +1,5 @@
 //
-//  PlayerSlot.swift
+//  PlayerState.swift
 //  DHKit
 //
 //  A player character participant in a live encounter.
@@ -14,17 +14,17 @@
 //
 
 import DHModels
-#if canImport(FoundationEssentials)
-import FoundationEssentials
-#else
 import Foundation
+
+#if canImport(FoundationEssentials)
+  import FoundationEssentials
 #endif
 
 /// A player character participant in a live encounter.
 ///
 /// Tracks combat-relevant PC stats the GM needs to resolve hits and
 /// track health during play. The full character sheet remains with the player.
-nonisolated public struct PlayerSlot: CombatParticipant, Sendable, Equatable, Hashable {
+nonisolated public struct PlayerState: CombatParticipant, Sendable, Equatable, Hashable {
   public let id: UUID
   public let name: String
 
@@ -83,7 +83,7 @@ nonisolated public struct PlayerSlot: CombatParticipant, Sendable, Equatable, Ha
     self.conditions = conditions
   }
 
-  /// Returns a copy of this slot with the specified mutable fields replaced.
+  /// Returns a copy of this value with the specified mutable fields replaced.
   ///
   /// Omit any parameter to preserve the existing value. This is the preferred
   /// way to produce updated copies; it avoids repeating every unchanged field
@@ -93,8 +93,8 @@ nonisolated public struct PlayerSlot: CombatParticipant, Sendable, Equatable, Ha
     currentStress: Int? = nil,
     currentArmorSlots: Int? = nil,
     conditions: Set<Condition>? = nil
-  ) -> PlayerSlot {
-    PlayerSlot(
+  ) -> PlayerState {
+    PlayerState(
       id: id, name: name,
       maxHP: maxHP, currentHP: currentHP ?? self.currentHP,
       maxStress: maxStress, currentStress: currentStress ?? self.currentStress,

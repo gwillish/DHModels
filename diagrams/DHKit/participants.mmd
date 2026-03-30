@@ -18,8 +18,8 @@ classDiagram
 
     EncounterParticipant <|-- CombatParticipant
 
-    %% ── Slot value types (nonisolated) ────────────────────────────────────
-    class AdversarySlot {
+    %% ── Session state value types (nonisolated) ───────────────────────────
+    class AdversaryState {
         +UUID id
         +String adversaryID
         +String? customName
@@ -30,10 +30,10 @@ classDiagram
         +Bool isDefeated
         +Set~Condition~ conditions
         +init(from: Adversary, customName:)
-        +applying(currentHP:currentStress:isDefeated:conditions:) AdversarySlot
+        +applying(currentHP:currentStress:isDefeated:conditions:) AdversaryState
     }
 
-    class PlayerSlot {
+    class PlayerState {
         +UUID id
         +String name
         +Int maxHP
@@ -46,16 +46,16 @@ classDiagram
         +Int armorSlots
         +Int currentArmorSlots
         +Set~Condition~ conditions
-        +applying(currentHP:currentStress:currentArmorSlots:conditions:) PlayerSlot
+        +applying(currentHP:currentStress:currentArmorSlots:conditions:) PlayerState
     }
 
-    class EnvironmentSlot {
+    class EnvironmentState {
         +UUID id
         +String environmentID
         +Bool isActive
-        +applying(isActive:) EnvironmentSlot
+        +applying(isActive:) EnvironmentState
     }
 
-    CombatParticipant <|.. AdversarySlot
-    CombatParticipant <|.. PlayerSlot
-    EncounterParticipant <|.. EnvironmentSlot
+    CombatParticipant <|.. AdversaryState
+    CombatParticipant <|.. PlayerState
+    EncounterParticipant <|.. EnvironmentState
