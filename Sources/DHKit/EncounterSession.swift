@@ -8,7 +8,7 @@
 //
 //  Design notes:
 //  - EncounterSession is @Observable so SwiftUI views bind to it directly.
-//  - AdversarySlot, PlayerSlot, and EnvironmentSlot are immutable structs stored
+//  - AdversaryState, PlayerState, and EnvironmentState are immutable structs stored
 //    in private backing arrays; mutations replace the affected struct wholesale
 //    (copy-with-update). Public computed properties expose read-only snapshots.
 //  - Fear and Hope are tracked on the session; individual adversary stress
@@ -61,16 +61,16 @@ public final class EncounterSession: Identifiable, Hashable {
   public var name: String
 
   // MARK: Participants (private backing stores)
-  private var _adversarySlots: [AdversarySlot]
-  private var _playerSlots: [PlayerSlot]
-  private var _environmentSlots: [EnvironmentSlot]
+  private var _adversarySlots: [AdversaryState]
+  private var _playerSlots: [PlayerState]
+  private var _environmentSlots: [EnvironmentState]
 
   /// Read-only snapshot of all adversary slots.
-  public var adversarySlots: [AdversarySlot] { _adversarySlots }
+  public var adversarySlots: [AdversaryState] { _adversarySlots }
   /// Read-only snapshot of all player slots.
-  public var playerSlots: [PlayerSlot] { _playerSlots }
+  public var playerSlots: [PlayerState] { _playerSlots }
   /// Read-only snapshot of all environment slots.
-  public var environmentSlots: [EnvironmentSlot] { _environmentSlots }
+  public var environmentSlots: [EnvironmentState] { _environmentSlots }
 
   // MARK: Fear & Hope
   /// The GM's Fear pool. Increases when players roll with Fear,
@@ -97,9 +97,9 @@ public final class EncounterSession: Identifiable, Hashable {
   public init(
     id: UUID = UUID(),
     name: String,
-    adversarySlots: [AdversarySlot] = [],
-    playerSlots: [PlayerSlot] = [],
-    environmentSlots: [EnvironmentSlot] = [],
+    adversarySlots: [AdversaryState] = [],
+    playerSlots: [PlayerState] = [],
+    environmentSlots: [EnvironmentState] = [],
     fearPool: Int = 0,
     hopePool: Int = 0,
     spotlightCount: Int = 0,
@@ -121,12 +121,12 @@ public final class EncounterSession: Identifiable, Hashable {
 
   /// Add a new adversary slot populated from a catalog entry.
   public func add(adversary: Adversary, customName: String? = nil) {
-    _adversarySlots.append(AdversarySlot(from: adversary, customName: customName))
+    _adversarySlots.append(AdversaryState(from: adversary, customName: customName))
   }
 
   /// Add an environment slot.
   public func add(environment: DaggerheartEnvironment) {
-    _environmentSlots.append(EnvironmentSlot(environmentID: environment.id))
+    _environmentSlots.append(EnvironmentState(environmentID: environment.id))
   }
 
   /// Remove an adversary slot by ID.
@@ -138,7 +138,7 @@ public final class EncounterSession: Identifiable, Hashable {
   // MARK: - Player Management
 
   /// Add a player slot to the encounter.
-  public func add(player: PlayerSlot) {
+  public func add(player: PlayerState) {
     _playerSlots.append(player)
   }
 
@@ -171,7 +171,7 @@ public final class EncounterSession: Identifiable, Hashable {
   // MARK: - HP & Stress Mutations
 
   /// Apply damage to a combat participant by ID, clamping HP to 0.
-  /// Adversary slots are marked ``AdversarySlot/isDefeated`` when HP reaches 0.
+  /// Adversary slots are marked ``AdversaryState/isDefeated`` when HP reaches 0.
   public func applyDamage(_ amount: Int, to id: UUID) {
     if let i = _adversarySlots.firstIndex(where: { $0.id == id }) {
       let s = _adversarySlots[i]
@@ -193,7 +193,7 @@ public final class EncounterSession: Identifiable, Hashable {
   }
 
   /// Heal a combat participant by ID, clamping HP to the slot's maximum.
-  /// Clears ``AdversarySlot/isDefeated`` if the adversary's HP rises above 0.
+  /// Clears ``AdversaryState/isDefeated`` if the adversary's HP rises above 0.
   public func applyHealing(_ amount: Int, to id: UUID) {
     if let i = _adversarySlots.firstIndex(where: { $0.id == id }) {
       let s = _adversarySlots[i]
@@ -322,7 +322,7 @@ public final class EncounterSession: Identifiable, Hashable {
   // MARK: - Computed Helpers
 
   /// All adversary slots still in the fight.
-  public var activeAdversaries: [AdversarySlot] {
+  public var activeAdversaries: [AdversaryState] {
     _adversarySlots.filter { !$0.isDefeated }
   }
 
@@ -347,18 +347,18 @@ public final class EncounterSession: Identifiable, Hashable {
     from definition: EncounterDefinition,
     using compendium: Compendium
   ) -> EncounterSession {
-    let adversarySlots: [AdversarySlot] = definition.adversaryIDs.compactMap { id in
+    let adversarySlots: [AdversaryState] = definition.adversaryIDs.compactMap { id in
       guard let adversary = compendium.adversary(id: id) else { return nil }
-      return AdversarySlot(from: adversary)
+      return AdversaryState(from: adversary)
     }
 
-    let environmentSlots: [EnvironmentSlot] = definition.environmentIDs.compactMap { id in
+    let environmentSlots: [EnvironmentState] = definition.environmentIDs.compactMap { id in
       guard compendium.environment(id: id) != nil else { return nil }
-      return EnvironmentSlot(environmentID: id)
+      return EnvironmentState(environmentID: id)
     }
 
-    let playerSlots: [PlayerSlot] = definition.playerConfigs.map { config in
-      PlayerSlot(
+    let playerSlots: [PlayerState] = definition.playerConfigs.map { config in
+      PlayerState(
         name: config.name,
         maxHP: config.maxHP,
         maxStress: config.maxStress,

@@ -1,6 +1,6 @@
 //
 //  PlayerSlot.swift
-//  DHKit
+//  Encounter
 //
 //  A player character participant in a live encounter.
 //  Tracks the combat-relevant subset of a PC's stats that the GM needs
@@ -13,12 +13,7 @@
 //  - Armor Slots: Marks available to reduce damage severity (equals Armor Score).
 //
 
-import DHModels
-#if canImport(FoundationEssentials)
-import FoundationEssentials
-#else
 import Foundation
-#endif
 
 /// A player character participant in a live encounter.
 ///
@@ -26,15 +21,15 @@ import Foundation
 /// track health during play. The full character sheet remains with the player.
 nonisolated public struct PlayerSlot: CombatParticipant, Sendable, Equatable, Hashable {
   public let id: UUID
-  public let name: String
+  public var name: String
 
   // MARK: Hit Points
   public let maxHP: Int
-  public let currentHP: Int
+  public var currentHP: Int
 
   // MARK: Stress
   public let maxStress: Int
-  public let currentStress: Int
+  public var currentStress: Int
 
   // MARK: Defense
   /// The DC for all rolls made against this PC.
@@ -48,10 +43,10 @@ nonisolated public struct PlayerSlot: CombatParticipant, Sendable, Equatable, Ha
   /// Total Armor Score (number of Armor Slots available).
   public let armorSlots: Int
   /// Remaining unused Armor Slots.
-  public let currentArmorSlots: Int
+  public var currentArmorSlots: Int
 
   // MARK: Conditions
-  public let conditions: Set<Condition>
+  public var conditions: Set<Condition>
 
   // MARK: - Init
 
@@ -81,26 +76,5 @@ nonisolated public struct PlayerSlot: CombatParticipant, Sendable, Equatable, Ha
     self.armorSlots = armorSlots
     self.currentArmorSlots = currentArmorSlots ?? armorSlots
     self.conditions = conditions
-  }
-
-  /// Returns a copy of this slot with the specified mutable fields replaced.
-  ///
-  /// Omit any parameter to preserve the existing value. This is the preferred
-  /// way to produce updated copies; it avoids repeating every unchanged field
-  /// at mutation sites in ``EncounterSession``.
-  public func applying(
-    currentHP: Int? = nil,
-    currentStress: Int? = nil,
-    currentArmorSlots: Int? = nil,
-    conditions: Set<Condition>? = nil
-  ) -> PlayerSlot {
-    PlayerSlot(
-      id: id, name: name,
-      maxHP: maxHP, currentHP: currentHP ?? self.currentHP,
-      maxStress: maxStress, currentStress: currentStress ?? self.currentStress,
-      evasion: evasion, thresholdMajor: thresholdMajor, thresholdSevere: thresholdSevere,
-      armorSlots: armorSlots, currentArmorSlots: currentArmorSlots ?? self.currentArmorSlots,
-      conditions: conditions ?? self.conditions
-    )
   }
 }

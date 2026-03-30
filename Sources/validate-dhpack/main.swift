@@ -40,7 +40,7 @@ struct ValidateDHPack: ParsableCommand {
         )
       } catch {
         FileHandle.standardError.write(
-          Data("\(path): FAILED — \(error.localizedDescription)\n".utf8))
+          Data("\(path): FAILED — \(error)\n".utf8))
         failed = true
       }
     }

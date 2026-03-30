@@ -6,19 +6,19 @@ classDiagram
         <<Observable, MainActor>>
         +UUID id
         +String name
-        +[AdversarySlot] adversarySlots
-        +[PlayerSlot] playerSlots
-        +[EnvironmentSlot] environmentSlots
+        +[AdversaryState] adversarySlots
+        +[PlayerState] playerSlots
+        +[EnvironmentState] environmentSlots
         +Int fearPool
         +Int hopePool
         +UUID? spotlightedSlotID
         +Int spotlightCount
         +String gmNotes
-        +[AdversarySlot] activeAdversaries
+        +[AdversaryState] activeAdversaries
         +Bool isOver
         +add(adversary: Adversary, customName:)
         +add(environment: DaggerheartEnvironment)
-        +add(player: PlayerSlot)
+        +add(player: PlayerState)
         +removeAdversary(withID:)
         +removePlayer(withID:)
         +spotlight(id:)
@@ -38,14 +38,14 @@ classDiagram
         +make(from: EncounterDefinition, using: Compendium) EncounterSession$
     }
 
-    %% slot types shown as aggregated members only — see participants diagram
-    class AdversarySlot { +UUID id }
-    class PlayerSlot { +UUID id }
-    class EnvironmentSlot { +UUID id }
+    %% session state types shown as aggregated members only — see participants diagram
+    class AdversaryState { +UUID id }
+    class PlayerState { +UUID id }
+    class EnvironmentState { +UUID id }
 
-    EncounterSession "1" *-- "0..*" AdversarySlot : adversarySlots
-    EncounterSession "1" *-- "0..*" PlayerSlot : playerSlots
-    EncounterSession "1" *-- "0..*" EnvironmentSlot : environmentSlots
+    EncounterSession "1" *-- "0..*" AdversaryState : adversarySlots
+    EncounterSession "1" *-- "0..*" PlayerState : playerSlots
+    EncounterSession "1" *-- "0..*" EnvironmentState : environmentSlots
 
     %% ── Compendium ───────────────────────────────────────────────────────
     class Compendium {

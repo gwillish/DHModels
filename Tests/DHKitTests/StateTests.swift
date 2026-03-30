@@ -1,8 +1,8 @@
 //
-//  SlotTests.swift
+//  StateTests.swift
 //  DHKitTests
 //
-//  Unit tests for the slot value types: PlayerSlot, AdversarySlot, EnvironmentSlot.
+//  Unit tests for the session state value types: PlayerState, AdversaryState, EnvironmentState.
 //
 
 import DHModels
@@ -15,12 +15,12 @@ import Testing
 
 @testable import DHKit
 
-// MARK: - PlayerSlot
+// MARK: - PlayerState
 
-struct PlayerSlotTests {
+struct PlayerStateTests {
 
   @Test func playerSlotInitializesWithCorrectDefaults() {
-    let slot = PlayerSlot(
+    let slot = PlayerState(
       name: "Aldric",
       maxHP: 6,
       maxStress: 6,
@@ -38,11 +38,11 @@ struct PlayerSlotTests {
 
   @Test func playerSlotEquality() {
     let id = UUID()
-    let slot1 = PlayerSlot(
+    let slot1 = PlayerState(
       id: id, name: "A", maxHP: 6, maxStress: 6,
       evasion: 10, thresholdMajor: 5, thresholdSevere: 10, armorSlots: 2
     )
-    let slot2 = PlayerSlot(
+    let slot2 = PlayerState(
       id: id, name: "A", maxHP: 6, maxStress: 6,
       evasion: 10, thresholdMajor: 5, thresholdSevere: 10, armorSlots: 2
     )
@@ -50,12 +50,12 @@ struct PlayerSlotTests {
   }
 }
 
-// MARK: - AdversarySlot
+// MARK: - AdversaryState
 
-struct AdversarySlotTests {
+struct AdversaryStateTests {
 
   @Test func adversarySlotInitializesWithCorrectDefaults() {
-    let slot = AdversarySlot(adversaryID: "ironguard-soldier", maxHP: 6, maxStress: 3)
+    let slot = AdversaryState(adversaryID: "ironguard-soldier", maxHP: 6, maxStress: 3)
     #expect(slot.currentHP == 6)
     #expect(slot.currentStress == 0)
     #expect(slot.isDefeated == false)
@@ -71,7 +71,7 @@ struct AdversarySlotTests {
       hp: 4, stress: 2, attackModifier: "+1", attackName: "Dagger",
       attackRange: .veryClose, damage: "1d6 phy"
     )
-    let slot = AdversarySlot(from: adversary, customName: "Grim")
+    let slot = AdversaryState(from: adversary, customName: "Grim")
     #expect(slot.adversaryID == "bandit")
     #expect(slot.maxHP == 4)
     #expect(slot.maxStress == 2)
@@ -79,7 +79,7 @@ struct AdversarySlotTests {
   }
 
   @Test func adversarySlotApplyingPreservesUnchangedFields() {
-    let slot = AdversarySlot(adversaryID: "orc", maxHP: 8, maxStress: 4)
+    let slot = AdversaryState(adversaryID: "orc", maxHP: 8, maxStress: 4)
     let updated = slot.applying(currentHP: 5)
     #expect(updated.currentHP == 5)
     #expect(updated.maxHP == 8)
@@ -88,18 +88,18 @@ struct AdversarySlotTests {
   }
 }
 
-// MARK: - EnvironmentSlot
+// MARK: - EnvironmentState
 
-struct EnvironmentSlotTests {
+struct EnvironmentStateTests {
 
   @Test func environmentSlotDefaultsToActive() {
-    let slot = EnvironmentSlot(environmentID: "arcane-storm")
+    let slot = EnvironmentState(environmentID: "arcane-storm")
     #expect(slot.isActive == true)
     #expect(slot.environmentID == "arcane-storm")
   }
 
   @Test func environmentSlotApplyingTogglesActive() {
-    let slot = EnvironmentSlot(environmentID: "collapsing-bridge", isActive: true)
+    let slot = EnvironmentState(environmentID: "collapsing-bridge", isActive: true)
     let deactivated = slot.applying(isActive: false)
     #expect(deactivated.isActive == false)
     #expect(deactivated.id == slot.id)

@@ -15,6 +15,7 @@ All types require Apple platforms (iOS 17+, macOS 14+) and are isolated to
 ### Compendium
 
 - ``Compendium``
+- ``CompendiumError``
 
 ### Encounter Persistence
 
@@ -24,6 +25,12 @@ All types require Apple platforms (iOS 17+, macOS 14+) and are isolated to
 ### Live Session
 
 - ``EncounterSession``
-- ``AdversarySlot``
-- ``EnvironmentSlot``
+- ``AdversaryState``
+- ``PlayerState``
+- ``EnvironmentState``
 - ``SessionRegistry``
+
+### Session Participant Protocols
+
+- ``EncounterParticipant``
+- ``CombatParticipant``

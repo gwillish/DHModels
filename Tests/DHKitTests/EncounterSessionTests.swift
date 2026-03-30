@@ -2,8 +2,8 @@
 //  EncounterSessionTests.swift
 //  DaggerheartKitTests
 //
-//  Unit tests for EncounterSession mutations, AdversarySlot stat snapshots,
-//  PlayerSlot session integration, and EncounterSession factory (start from definition).
+//  Unit tests for EncounterSession mutations, AdversaryState stat snapshots,
+//  PlayerState session integration, and EncounterSession factory (start from definition).
 //
 
 import DHModels
@@ -200,9 +200,9 @@ import Testing
   }
 }
 
-// MARK: - PlayerSlot Session Integration
+// MARK: - PlayerState Session Integration
 
-@MainActor struct PlayerSlotSessionTests {
+@MainActor struct PlayerStateSessionTests {
 
   private func makeSession() -> EncounterSession {
     EncounterSession(name: "Test Encounter")
@@ -227,8 +227,8 @@ import Testing
     )
   }
 
-  private func makePlayer() -> PlayerSlot {
-    PlayerSlot(
+  private func makePlayer() -> PlayerState {
+    PlayerState(
       name: "Aldric",
       maxHP: 6,
       maxStress: 6,
@@ -339,7 +339,7 @@ import Testing
   @Test func markArmorSlotClampsToZero() {
     let session = makeSession()
     var player = makePlayer()
-    player = PlayerSlot(
+    player = PlayerState(
       name: player.name, maxHP: player.maxHP, maxStress: player.maxStress,
       evasion: player.evasion, thresholdMajor: player.thresholdMajor,
       thresholdSevere: player.thresholdSevere, armorSlots: 1
@@ -472,9 +472,9 @@ import Testing
   }
 }
 
-// MARK: - AdversarySlot stat snapshot
+// MARK: - AdversaryState stat snapshot
 
-@MainActor struct AdversarySlotSnapshotTests {
+@MainActor struct AdversaryStateSnapshotTests {
 
   private func makeSoldier() -> Adversary {
     Adversary(
@@ -488,7 +488,7 @@ import Testing
 
   @Test func slotSnapshotsMaxHPAndMaxStress() {
     let soldier = makeSoldier()
-    let slot = AdversarySlot(adversaryID: soldier.id, maxHP: soldier.hp, maxStress: soldier.stress)
+    let slot = AdversaryState(adversaryID: soldier.id, maxHP: soldier.hp, maxStress: soldier.stress)
     #expect(slot.maxHP == 6)
     #expect(slot.maxStress == 3)
   }

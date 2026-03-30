@@ -145,7 +145,7 @@ nonisolated public struct EncounterFeature: Codable, Identifiable, Sendable, Equ
 ///
 /// This is a **catalog model** — it represents the static definition of an
 /// adversary, not a live instance being tracked in an encounter.
-/// See ``AdversarySlot`` in `EncounterSession.swift` for the runtime type.
+/// See ``AdversaryState`` in `EncounterSession.swift` for the runtime type.
 ///
 /// ## JSON Compatibility
 /// The `thresholds` field is stored in community JSON as a single

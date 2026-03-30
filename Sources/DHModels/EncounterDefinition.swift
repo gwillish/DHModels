@@ -11,7 +11,7 @@
 //
 //  Catalog vs. Runtime Split:
 //  - Definition stores adversary/environment IDs (references into the Compendium).
-//  - Session resolves those IDs into live AdversarySlot and EnvironmentSlot
+//  - Session resolves those IDs into live AdversaryState and EnvironmentState
 //    instances with mutable HP, Stress, and condition tracking.
 //
 
@@ -25,9 +25,9 @@ import Foundation
 
 /// Configuration for a single player character in an encounter definition.
 ///
-/// This is the `Codable`, value-type counterpart of ``PlayerSlot``.
+/// This is the `Codable`, value-type counterpart of ``PlayerState``.
 /// When an ``EncounterSession`` is started from a definition, each
-/// `PlayerConfig` becomes a ``PlayerSlot`` with fresh runtime state.
+/// `PlayerConfig` becomes a ``PlayerState`` with fresh runtime state.
 nonisolated public struct PlayerConfig: Codable, Sendable, Equatable, Hashable, Identifiable {
   public let id: UUID
   public let name: String

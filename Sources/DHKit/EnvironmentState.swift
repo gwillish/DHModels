@@ -1,5 +1,5 @@
 //
-//  EnvironmentSlot.swift
+//  EnvironmentState.swift
 //  DHKit
 //
 //  An environment element active in the current encounter scene.
@@ -17,8 +17,8 @@ import Foundation
 /// their features and activation state.
 ///
 /// All properties are immutable. Mutations are performed by ``EncounterSession``,
-/// which replaces slots wholesale (copy-with-update pattern).
-nonisolated public struct EnvironmentSlot: EncounterParticipant, Sendable, Equatable, Hashable {
+/// which replaces values wholesale (copy-with-update pattern).
+nonisolated public struct EnvironmentState: EncounterParticipant, Sendable, Equatable, Hashable {
   public let id: UUID
   /// The slug identifying this environment in the ``Compendium``.
   public let environmentID: String
@@ -35,11 +35,11 @@ nonisolated public struct EnvironmentSlot: EncounterParticipant, Sendable, Equat
     self.isActive = isActive
   }
 
-  /// Returns a copy of this slot with the specified mutable fields replaced.
+  /// Returns a copy of this value with the specified mutable fields replaced.
   ///
   /// Omit any parameter to preserve the existing value.
-  public func applying(isActive: Bool? = nil) -> EnvironmentSlot {
-    EnvironmentSlot(
+  public func applying(isActive: Bool? = nil) -> EnvironmentState {
+    EnvironmentState(
       id: id,
       environmentID: environmentID,
       isActive: isActive ?? self.isActive

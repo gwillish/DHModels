@@ -274,7 +274,7 @@ public final class EncounterStore {
     do {
       try await Self.deleteEncounter(at: url)
     } catch {
-      throw EncounterStoreError.deleteFailed(id, error.localizedDescription)
+      throw EncounterStoreError.deleteFailed(id, "\(error)")
     }
     definitions.removeAll { $0.id == id }
   }
@@ -326,7 +326,7 @@ public final class EncounterStore {
     do {
       try await Self.writeEncounter(definition, to: url)
     } catch {
-      throw EncounterStoreError.saveFailed(definition.id, error.localizedDescription)
+      throw EncounterStoreError.saveFailed(definition.id, "\(error)")
     }
   }
 

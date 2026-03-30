@@ -34,7 +34,7 @@ nonisolated public enum CompendiumError: Error, LocalizedError {
     case .fileNotFound(let resourceName):
       return "Compendium resource '\(resourceName)' not found in app bundle."
     case .decodingFailed(let resourceName, let underlying):
-      return "Failed to decode '\(resourceName)': \(underlying.localizedDescription)"
+      return "Failed to decode '\(resourceName)': \(underlying)"
     }
   }
 }
@@ -220,7 +220,7 @@ public final class Compendium {
       )
     } catch let error as CompendiumError {
       loadError = error
-      logger.error("Compendium load failed: \(error.localizedDescription)")
+      logger.error("Compendium load failed: \(error)")
       throw error
     } catch {
       let wrapped = CompendiumError.decodingFailed(resourceName: "unknown", underlying: error)
