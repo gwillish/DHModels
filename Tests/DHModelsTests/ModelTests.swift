@@ -7,14 +7,14 @@
 //  DifficultyBudget, DaggerheartEnvironment.
 //
 
+import Foundation
 import Testing
 
 @testable import DHModels
 
 #if canImport(FoundationEssentials)
-import FoundationEssentials
+  import FoundationEssentials
 #endif
-import Foundation
 
 // MARK: - Adversary Decoding
 

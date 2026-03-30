@@ -7,11 +7,11 @@
 //
 
 import DHModels
+import Foundation
 
 #if canImport(FoundationEssentials)
-import FoundationEssentials
+  import FoundationEssentials
 #endif
-import Foundation
 
 /// A participant in a Daggerheart encounter that can hold the spotlight.
 ///

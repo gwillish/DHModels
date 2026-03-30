@@ -7,10 +7,11 @@
 //  Persisted to Application Support so the source list survives app restarts.
 //
 
-#if canImport(FoundationEssentials)
-import FoundationEssentials
-#endif
 import Foundation
+
+#if canImport(FoundationEssentials)
+  import FoundationEssentials
+#endif
 
 /// A registered content source for community adversary and environment packs.
 ///

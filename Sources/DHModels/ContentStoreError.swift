@@ -5,10 +5,11 @@
 //  Typed errors for ContentStore, ContentFetcher, and ContentWriter.
 //
 
-#if canImport(FoundationEssentials)
-import FoundationEssentials
-#endif
 import Foundation
+
+#if canImport(FoundationEssentials)
+  import FoundationEssentials
+#endif
 
 /// Errors produced by the content loading and update pipeline.
 nonisolated public enum ContentStoreError: Error, LocalizedError, Sendable {

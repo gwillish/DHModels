@@ -6,11 +6,11 @@
 //
 
 import DHModels
+import Foundation
 
 #if canImport(FoundationEssentials)
-import FoundationEssentials
+  import FoundationEssentials
 #endif
-import Foundation
 
 /// A single adversary participant in a live encounter.
 ///

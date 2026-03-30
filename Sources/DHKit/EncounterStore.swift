@@ -16,12 +16,12 @@
 //
 
 import DHModels
+import Foundation
 import Observation
 
 #if canImport(FoundationEssentials)
-import FoundationEssentials
+  import FoundationEssentials
 #endif
-import Foundation
 
 // MARK: - EncounterStoreError
 

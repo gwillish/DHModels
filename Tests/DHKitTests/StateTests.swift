@@ -6,14 +6,14 @@
 //
 
 import DHModels
+import Foundation
 import Testing
 
 @testable import DHKit
 
 #if canImport(FoundationEssentials)
-import FoundationEssentials
+  import FoundationEssentials
 #endif
-import Foundation
 
 // MARK: - PlayerState
 

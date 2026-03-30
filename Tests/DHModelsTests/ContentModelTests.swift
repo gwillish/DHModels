@@ -7,14 +7,14 @@
 //  All tested types are pure value types with no I/O dependencies.
 //
 
+import Foundation
 import Testing
 
 @testable import DHModels
 
 #if canImport(FoundationEssentials)
-import FoundationEssentials
+  import FoundationEssentials
 #endif
-import Foundation
 
 // MARK: - ContentSource backoff
 

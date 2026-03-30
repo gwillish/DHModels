@@ -13,10 +13,11 @@
 //  See docs/data-schema.md for full field reference and source notes.
 //
 
-#if canImport(FoundationEssentials)
-import FoundationEssentials
-#endif
 import Foundation
+
+#if canImport(FoundationEssentials)
+  import FoundationEssentials
+#endif
 
 // MARK: - AdversaryType
 

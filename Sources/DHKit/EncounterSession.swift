@@ -17,13 +17,13 @@
 //
 
 import DHModels
+import Foundation
 import Logging
 import Observation
 
 #if canImport(FoundationEssentials)
-import FoundationEssentials
+  import FoundationEssentials
 #endif
-import Foundation
 
 // MARK: - EncounterSession
 

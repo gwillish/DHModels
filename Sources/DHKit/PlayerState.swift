@@ -14,11 +14,11 @@
 //
 
 import DHModels
+import Foundation
 
 #if canImport(FoundationEssentials)
-import FoundationEssentials
+  import FoundationEssentials
 #endif
-import Foundation
 
 /// A player character participant in a live encounter.
 ///

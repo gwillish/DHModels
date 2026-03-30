@@ -15,10 +15,11 @@
 //  See docs/data-schema.md for the full field reference.
 //
 
-#if canImport(FoundationEssentials)
-import FoundationEssentials
-#endif
 import Foundation
+
+#if canImport(FoundationEssentials)
+  import FoundationEssentials
+#endif
 
 /// A Daggerheart environment — a scene element with features but no HP or Stress.
 ///

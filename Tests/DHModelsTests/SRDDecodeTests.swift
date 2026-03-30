@@ -9,14 +9,14 @@
 //  Bundle.module resolves them correctly on all platforms including Linux.
 //
 
+import Foundation
 import Testing
 
 @testable import DHModels
 
 #if canImport(FoundationEssentials)
-import FoundationEssentials
+  import FoundationEssentials
 #endif
-import Foundation
 
 struct SRDDecodeTests {
 
