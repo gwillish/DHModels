@@ -1,9 +1,10 @@
 import ArgumentParser
 import DHModels
+
 #if canImport(FoundationEssentials)
-import FoundationEssentials
+  import FoundationEssentials
 #else
-import Foundation
+  import Foundation
 #endif
 
 // validate-dhpack — validates one or more .dhpack files against the DaggerheartModels schema.

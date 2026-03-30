@@ -6,9 +6,9 @@
 //
 
 #if canImport(FoundationEssentials)
-import FoundationEssentials
+  import FoundationEssentials
 #else
-import Foundation
+  import Foundation
 #endif
 
 /// Errors produced by the content loading and update pipeline.
@@ -29,7 +29,7 @@ nonisolated public enum ContentStoreError: Error, LocalizedError, Sendable {
   public var errorDescription: String? {
     switch self {
     case .fetchThrottled(let id, let until):
-      return "Source '\(id)' is throttled until \(until.formatted(.dateTime))."
+      return "Source '\(id)' is throttled until \(until.description)."
     case .networkError(let id, let error):
       return "Network error for '\(id)': \(error)"
     case .decodingFailed(let id, let error):

@@ -14,9 +14,9 @@
 //
 
 #if canImport(FoundationEssentials)
-import FoundationEssentials
+  import FoundationEssentials
 #else
-import Foundation
+  import Foundation
 #endif
 
 // MARK: - AdversaryType
@@ -225,8 +225,9 @@ nonisolated public struct Adversary: Codable, Identifiable, Sendable, Equatable,
   /// Derives a URL-safe slug from a display name, e.g. "Acid Burrower" → "acid-burrower".
   private static func slug(_ name: String) -> String {
     name.lowercased()
-      .components(separatedBy: CharacterSet.alphanumerics.inverted)
+      .split(whereSeparator: { !$0.isLetter && !$0.isNumber })
       .filter { !$0.isEmpty }
+      .map { String($0) }
       .joined(separator: "-")
   }
 
@@ -294,7 +295,7 @@ nonisolated public struct Adversary: Codable, Identifiable, Sendable, Equatable,
         let parts =
           raw
           .split(separator: "/")
-          .map { $0.trimmingCharacters(in: .whitespaces) }
+          .map { String($0).filter { !$0.isWhitespace } }
         guard parts.count == 2 else {
           throw DecodingError.dataCorruptedError(
             forKey: .thresholds, in: c,

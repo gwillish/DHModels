@@ -8,9 +8,9 @@
 //
 
 #if canImport(FoundationEssentials)
-import FoundationEssentials
+  import FoundationEssentials
 #else
-import Foundation
+  import Foundation
 #endif
 
 /// A registered content source for community adversary and environment packs.
@@ -126,8 +126,8 @@ nonisolated public struct ContentSource: Codable, Identifiable, Equatable, Hasha
   /// - 10th failure → capped at 7 days
   public func recordingFailure(at date: Date = .now) -> ContentSource {
     var updated = self
-    let exponent = Double(consecutiveFailures)  // starts at 0 on first failure
-    let hours = pow(2.0, exponent)  // 1, 2, 4, 8, …
+    let shiftAmount = min(consecutiveFailures, 62)
+    let hours = Double(1 << shiftAmount)  // 1, 2, 4, 8, …
     let delay = min(hours * 3_600, 7 * 24 * 3_600)  // cap at 7 days
     updated.consecutiveFailures += 1
     updated.nextAllowedFetch = date.addingTimeInterval(delay)

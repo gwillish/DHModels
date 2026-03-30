@@ -14,9 +14,9 @@
 //
 
 #if canImport(FoundationEssentials)
-import FoundationEssentials
+  import FoundationEssentials
 #else
-import Foundation
+  import Foundation
 #endif
 
 /// Pure-function namespace for computing Daggerheart encounter difficulty

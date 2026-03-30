@@ -7,14 +7,15 @@
 //
 
 import DHModels
-#if canImport(FoundationEssentials)
-import FoundationEssentials
-#else
-import Foundation
-#endif
 import Testing
 
 @testable import DHKit
+
+#if canImport(FoundationEssentials)
+  import FoundationEssentials
+#else
+  import Foundation
+#endif
 
 // MARK: - EncounterStoreError
 
