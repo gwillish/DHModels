@@ -18,7 +18,9 @@ import Foundation
 ///
 /// All properties are immutable. Mutations are performed by ``EncounterSession``,
 /// which replaces values wholesale (copy-with-update pattern).
-nonisolated public struct EnvironmentState: EncounterParticipant, Sendable, Equatable, Hashable {
+nonisolated public struct EnvironmentState: EncounterParticipant, Codable, Sendable, Equatable,
+  Hashable
+{
   public let id: UUID
   /// The slug identifying this environment in the ``Compendium``.
   public let environmentID: String
