@@ -470,6 +470,140 @@ import Testing
     #expect(session.spotlightedSlotID == nil)
     #expect(session.spotlightCount == 0)
   }
+
+  // MARK: Definition provenance
+
+  @Test func makeFromDefinitionSetsDefinitionProvenance() {
+    let compendium = makeCompendium()
+    let def = EncounterDefinition(name: "Provenance Test")
+
+    let session = EncounterSession.make(from: def, using: compendium)
+
+    #expect(session.definitionID == def.id)
+    #expect(session.definitionSnapshotDate == def.modifiedAt)
+  }
+
+  // MARK: Adversary auto-numbering (#17)
+
+  @Test func singleAdversaryHasNoCustomName() {
+    let compendium = makeCompendium()
+    var def = EncounterDefinition(name: "Test")
+    def.adversaryIDs = ["ironguard-soldier"]
+
+    let session = EncounterSession.make(from: def, using: compendium)
+
+    #expect(session.adversarySlots[0].customName == nil)
+  }
+
+  @Test func duplicateAdversariesGetNumberedNames() {
+    let compendium = makeCompendium()
+    var def = EncounterDefinition(name: "Test")
+    def.adversaryIDs = ["ironguard-soldier", "ironguard-soldier"]
+
+    let session = EncounterSession.make(from: def, using: compendium)
+
+    #expect(session.adversarySlots[0].customName == "Ironguard Soldier 1")
+    #expect(session.adversarySlots[1].customName == "Ironguard Soldier 2")
+  }
+
+  @Test func triplicateAdversariesGetNumberedNames() {
+    let comp = Compendium()
+    comp.addAdversary(
+      Adversary(
+        id: "goblin", name: "Goblin",
+        tier: 1, role: .minion, flavorText: "A small menace.",
+        difficulty: 8, thresholdMajor: 3, thresholdSevere: 6,
+        hp: 3, stress: 2, attackModifier: "+1", attackName: "Shiv",
+        attackRange: .veryClose, damage: "1d6 phy"
+      ))
+    var def = EncounterDefinition(name: "Test")
+    def.adversaryIDs = ["goblin", "goblin", "goblin"]
+
+    let session = EncounterSession.make(from: def, using: comp)
+
+    #expect(session.adversarySlots[0].customName == "Goblin 1")
+    #expect(session.adversarySlots[1].customName == "Goblin 2")
+    #expect(session.adversarySlots[2].customName == "Goblin 3")
+  }
+
+  @Test func mixedAdversariesOnlyDuplicatesAreNumbered() {
+    let comp = Compendium()
+    comp.addAdversary(
+      Adversary(
+        id: "goblin", name: "Goblin",
+        tier: 1, role: .minion, flavorText: "A small menace.",
+        difficulty: 8, thresholdMajor: 3, thresholdSevere: 6,
+        hp: 3, stress: 2, attackModifier: "+1", attackName: "Shiv",
+        attackRange: .veryClose, damage: "1d6 phy"
+      ))
+    comp.addAdversary(
+      Adversary(
+        id: "ironguard-soldier", name: "Ironguard Soldier",
+        tier: 1, role: .bruiser, flavorText: "A disciplined mercenary.",
+        difficulty: 11, thresholdMajor: 5, thresholdSevere: 10,
+        hp: 6, stress: 3, attackModifier: "+3", attackName: "Longsword",
+        attackRange: .veryClose, damage: "1d10+3 phy"
+      ))
+    var def = EncounterDefinition(name: "Test")
+    def.adversaryIDs = ["goblin", "ironguard-soldier", "ironguard-soldier"]
+
+    let session = EncounterSession.make(from: def, using: comp)
+
+    // goblin appears once — no custom name
+    #expect(session.adversarySlots[0].customName == nil)
+    // soldiers appear twice — numbered
+    #expect(session.adversarySlots[1].customName == "Ironguard Soldier 1")
+    #expect(session.adversarySlots[2].customName == "Ironguard Soldier 2")
+  }
+}
+
+// MARK: - EncounterSession Codable
+
+@MainActor struct EncounterSessionCodableTests {
+
+  @Test func sessionCodableRoundTrip() throws {
+    let adversarySlot = AdversaryState(adversaryID: "ironguard-soldier", maxHP: 6, maxStress: 3)
+    let session = EncounterSession(
+      name: "Bandit Ambush",
+      adversarySlots: [adversarySlot],
+      playerSlots: [
+        PlayerState(
+          name: "Aldric", maxHP: 6, maxStress: 6,
+          evasion: 12, thresholdMajor: 8, thresholdSevere: 15, armorSlots: 3
+        )
+      ],
+      fearPool: 2,
+      hopePool: 3,
+      spotlightedSlotID: adversarySlot.id,
+      spotlightCount: 1,
+      gmNotes: "Remember the secret door.",
+      definitionID: UUID(),
+      definitionSnapshotDate: Date(timeIntervalSince1970: 1_000_000)
+    )
+
+    let data = try JSONEncoder().encode(session)
+    let decoded = try JSONDecoder().decode(EncounterSession.self, from: data)
+
+    #expect(decoded.id == session.id)
+    #expect(decoded.name == "Bandit Ambush")
+    #expect(decoded.adversarySlots.count == 1)
+    #expect(decoded.adversarySlots[0].adversaryID == "ironguard-soldier")
+    #expect(decoded.playerSlots.count == 1)
+    #expect(decoded.playerSlots[0].name == "Aldric")
+    #expect(decoded.fearPool == 2)
+    #expect(decoded.hopePool == 3)
+    #expect(decoded.spotlightedSlotID == adversarySlot.id)
+    #expect(decoded.spotlightCount == 1)
+    #expect(decoded.gmNotes == "Remember the secret door.")
+    #expect(decoded.definitionID == session.definitionID)
+    #expect(decoded.definitionSnapshotDate == session.definitionSnapshotDate)
+  }
+
+  @Test func directInitHasNilDefinitionFields() {
+    let session = EncounterSession(name: "Ad-hoc Encounter")
+    #expect(session.definitionID == nil)
+    #expect(session.definitionSnapshotDate == nil)
+  }
 }
 
 // MARK: - AdversaryState stat snapshot

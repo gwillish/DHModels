@@ -48,6 +48,25 @@ struct PlayerStateTests {
     )
     #expect(slot1 == slot2)
   }
+
+  @Test func playerStateCodableRoundTrip() throws {
+    let slot = PlayerState(
+      name: "Aldric", maxHP: 6, currentHP: 4,
+      maxStress: 6, currentStress: 2,
+      evasion: 12, thresholdMajor: 8, thresholdSevere: 15,
+      armorSlots: 3, currentArmorSlots: 1,
+      conditions: [.restrained]
+    )
+    let data = try JSONEncoder().encode(slot)
+    let decoded = try JSONDecoder().decode(PlayerState.self, from: data)
+
+    #expect(decoded.id == slot.id)
+    #expect(decoded.name == "Aldric")
+    #expect(decoded.currentHP == 4)
+    #expect(decoded.currentStress == 2)
+    #expect(decoded.currentArmorSlots == 1)
+    #expect(decoded.conditions == [.restrained])
+  }
 }
 
 // MARK: - AdversaryState
@@ -86,6 +105,27 @@ struct AdversaryStateTests {
     #expect(updated.adversaryID == "orc")
     #expect(updated.id == slot.id)
   }
+
+  @Test func adversaryCodableRoundTrip() throws {
+    let slot = AdversaryState(
+      adversaryID: "goblin",
+      customName: "Grimfang",
+      maxHP: 4, maxStress: 2,
+      currentHP: 2, currentStress: 1,
+      isDefeated: false,
+      conditions: [.vulnerable]
+    )
+    let data = try JSONEncoder().encode(slot)
+    let decoded = try JSONDecoder().decode(AdversaryState.self, from: data)
+
+    #expect(decoded.id == slot.id)
+    #expect(decoded.adversaryID == "goblin")
+    #expect(decoded.customName == "Grimfang")
+    #expect(decoded.currentHP == 2)
+    #expect(decoded.currentStress == 1)
+    #expect(decoded.isDefeated == false)
+    #expect(decoded.conditions == [.vulnerable])
+  }
 }
 
 // MARK: - EnvironmentState
@@ -104,5 +144,15 @@ struct EnvironmentStateTests {
     #expect(deactivated.isActive == false)
     #expect(deactivated.id == slot.id)
     #expect(deactivated.environmentID == slot.environmentID)
+  }
+
+  @Test func environmentStateCodableRoundTrip() throws {
+    let slot = EnvironmentState(environmentID: "arcane-storm", isActive: false)
+    let data = try JSONEncoder().encode(slot)
+    let decoded = try JSONDecoder().decode(EnvironmentState.self, from: data)
+
+    #expect(decoded.id == slot.id)
+    #expect(decoded.environmentID == "arcane-storm")
+    #expect(decoded.isActive == false)
   }
 }

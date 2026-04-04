@@ -60,6 +60,14 @@ public final class EncounterSession: Identifiable, Hashable {
   public let id: UUID
   public var name: String
 
+  /// The ID of the ``EncounterDefinition`` this session was created from.
+  /// `nil` for sessions created directly (tests, blank sessions).
+  public let definitionID: UUID?
+
+  /// The modification date of the source definition at the time this session was created.
+  /// Used by the registry to detect stale sessions. `nil` if not definition-backed.
+  public let definitionSnapshotDate: Date?
+
   // MARK: Participants (private backing stores)
   private var _adversarySlots: [AdversaryState]
   private var _playerSlots: [PlayerState]
@@ -102,8 +110,11 @@ public final class EncounterSession: Identifiable, Hashable {
     environmentSlots: [EnvironmentState] = [],
     fearPool: Int = 0,
     hopePool: Int = 0,
+    spotlightedSlotID: UUID? = nil,
     spotlightCount: Int = 0,
-    gmNotes: String = ""
+    gmNotes: String = "",
+    definitionID: UUID? = nil,
+    definitionSnapshotDate: Date? = nil
   ) {
     self.id = id
     self.name = name
@@ -112,9 +123,11 @@ public final class EncounterSession: Identifiable, Hashable {
     self._environmentSlots = environmentSlots
     self.fearPool = fearPool
     self.hopePool = hopePool
-    self.spotlightedSlotID = nil
+    self.spotlightedSlotID = spotlightedSlotID
     self.spotlightCount = spotlightCount
     self.gmNotes = gmNotes
+    self.definitionID = definitionID
+    self.definitionSnapshotDate = definitionSnapshotDate
   }
 
   // MARK: - Roster Management
@@ -347,9 +360,20 @@ public final class EncounterSession: Identifiable, Hashable {
     from definition: EncounterDefinition,
     using compendium: Compendium
   ) -> EncounterSession {
+    // Count occurrences of each adversary ID so duplicates can be named.
+    var counts: [String: Int] = [:]
+    for id in definition.adversaryIDs { counts[id, default: 0] += 1 }
+
+    // Assign sequential custom names only when the same adversary appears more than once.
+    var counters: [String: Int] = [:]
     let adversarySlots: [AdversaryState] = definition.adversaryIDs.compactMap { id in
       guard let adversary = compendium.adversary(id: id) else { return nil }
-      return AdversaryState(from: adversary)
+      guard (counts[id] ?? 0) > 1 else {
+        return AdversaryState(from: adversary)
+      }
+      let n = (counters[id] ?? 0) + 1
+      counters[id] = n
+      return AdversaryState(from: adversary, customName: "\(adversary.name) \(n)")
     }
 
     let environmentSlots: [EnvironmentState] = definition.environmentIDs.compactMap { id in
@@ -374,7 +398,61 @@ public final class EncounterSession: Identifiable, Hashable {
       adversarySlots: adversarySlots,
       playerSlots: playerSlots,
       environmentSlots: environmentSlots,
-      gmNotes: definition.gmNotes
+      gmNotes: definition.gmNotes,
+      definitionID: definition.id,
+      definitionSnapshotDate: definition.modifiedAt
+    )
+  }
+}
+
+// MARK: - Codable
+
+extension EncounterSession: @MainActor Codable {
+
+  enum CodingKeys: String, CodingKey {
+    case id, name
+    case adversarySlots, playerSlots, environmentSlots
+    case fearPool, hopePool, spotlightedSlotID, spotlightCount, gmNotes
+    case definitionID, definitionSnapshotDate
+  }
+
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: CodingKeys.self)
+    try c.encode(id, forKey: .id)
+    try c.encode(name, forKey: .name)
+    try c.encode(_adversarySlots, forKey: .adversarySlots)
+    try c.encode(_playerSlots, forKey: .playerSlots)
+    try c.encode(_environmentSlots, forKey: .environmentSlots)
+    try c.encode(fearPool, forKey: .fearPool)
+    try c.encode(hopePool, forKey: .hopePool)
+    try c.encodeIfPresent(spotlightedSlotID, forKey: .spotlightedSlotID)
+    try c.encode(spotlightCount, forKey: .spotlightCount)
+    try c.encode(gmNotes, forKey: .gmNotes)
+    try c.encodeIfPresent(definitionID, forKey: .definitionID)
+    try c.encodeIfPresent(definitionSnapshotDate, forKey: .definitionSnapshotDate)
+  }
+
+  public convenience init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: CodingKeys.self)
+    let id = try c.decode(UUID.self, forKey: .id)
+    let name = try c.decode(String.self, forKey: .name)
+    let adversarySlots = try c.decode([AdversaryState].self, forKey: .adversarySlots)
+    let playerSlots = try c.decode([PlayerState].self, forKey: .playerSlots)
+    let environmentSlots = try c.decode([EnvironmentState].self, forKey: .environmentSlots)
+    let fearPool = try c.decode(Int.self, forKey: .fearPool)
+    let hopePool = try c.decode(Int.self, forKey: .hopePool)
+    let spotlightedSlotID = try c.decodeIfPresent(UUID.self, forKey: .spotlightedSlotID)
+    let spotlightCount = try c.decode(Int.self, forKey: .spotlightCount)
+    let gmNotes = try c.decode(String.self, forKey: .gmNotes)
+    let definitionID = try c.decodeIfPresent(UUID.self, forKey: .definitionID)
+    let definitionSnapshotDate = try c.decodeIfPresent(Date.self, forKey: .definitionSnapshotDate)
+    self.init(
+      id: id, name: name,
+      adversarySlots: adversarySlots, playerSlots: playerSlots,
+      environmentSlots: environmentSlots,
+      fearPool: fearPool, hopePool: hopePool,
+      spotlightedSlotID: spotlightedSlotID, spotlightCount: spotlightCount, gmNotes: gmNotes,
+      definitionID: definitionID, definitionSnapshotDate: definitionSnapshotDate
     )
   }
 }

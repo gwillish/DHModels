@@ -24,7 +24,8 @@ import Foundation
 ///
 /// All properties are immutable. Mutations are performed by ``EncounterSession``,
 /// which replaces values wholesale (copy-with-update pattern).
-nonisolated public struct AdversaryState: CombatParticipant, Sendable, Equatable, Hashable {
+nonisolated public struct AdversaryState: CombatParticipant, Codable, Sendable, Equatable, Hashable
+{
   public let id: UUID
   /// The slug that identifies this adversary in the ``Compendium``.
   public let adversaryID: String
