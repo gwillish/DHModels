@@ -25,6 +25,14 @@ import Observation
   import FoundationEssentials
 #endif
 
+// MARK: - SessionPhase
+
+/// The lifecycle phase of a live encounter session.
+public enum SessionPhase: String, Codable, Sendable {
+  case running
+  case paused
+}
+
 // MARK: - EncounterSession
 
 /// The live state of a Daggerheart encounter being run at the table.
@@ -100,6 +108,11 @@ public final class EncounterSession: Identifiable, Hashable {
   /// Running total of spotlight grants in this encounter.
   public var spotlightCount: Int
 
+  // MARK: Lifecycle
+
+  /// The current lifecycle phase of this session.
+  public private(set) var phase: SessionPhase
+
   // MARK: Notes
 
   /// Freeform notes visible to the GM during the encounter.
@@ -122,6 +135,7 @@ public final class EncounterSession: Identifiable, Hashable {
     spotlightedSlotID: UUID? = nil,
     spotlightCount: Int = 0,
     gmNotes: String = "",
+    phase: SessionPhase = .running,
     definitionID: UUID? = nil,
     definitionSnapshotDate: Date? = nil
   ) {
@@ -135,8 +149,21 @@ public final class EncounterSession: Identifiable, Hashable {
     self.spotlightedSlotID = spotlightedSlotID
     self.spotlightCount = spotlightCount
     self.gmNotes = gmNotes
+    self.phase = phase
     self.definitionID = definitionID
     self.definitionSnapshotDate = definitionSnapshotDate
+  }
+
+  // MARK: - Lifecycle
+
+  /// Pause this session. The session persists and can be resumed later.
+  public func pause() {
+    phase = .paused
+  }
+
+  /// Resume a paused session.
+  public func resume() {
+    phase = .running
   }
 
   // MARK: - Roster Management
@@ -453,6 +480,7 @@ extension EncounterSession: @MainActor Codable {
     case id, name
     case adversarySlots, playerSlots, environmentSlots
     case fearPool, hopePool, spotlightedSlotID, spotlightCount, gmNotes
+    case phase
     case definitionID, definitionSnapshotDate
   }
 
@@ -468,6 +496,7 @@ extension EncounterSession: @MainActor Codable {
     try c.encodeIfPresent(spotlightedSlotID, forKey: .spotlightedSlotID)
     try c.encode(spotlightCount, forKey: .spotlightCount)
     try c.encode(gmNotes, forKey: .gmNotes)
+    try c.encode(phase, forKey: .phase)
     try c.encodeIfPresent(definitionID, forKey: .definitionID)
     try c.encodeIfPresent(definitionSnapshotDate, forKey: .definitionSnapshotDate)
   }
@@ -484,6 +513,9 @@ extension EncounterSession: @MainActor Codable {
     let spotlightedSlotID = try c.decodeIfPresent(UUID.self, forKey: .spotlightedSlotID)
     let spotlightCount = try c.decode(Int.self, forKey: .spotlightCount)
     let gmNotes = try c.decode(String.self, forKey: .gmNotes)
+    let phase =
+      (try c.decodeIfPresent(String.self, forKey: .phase))
+      .flatMap(SessionPhase.init(rawValue:)) ?? .running
     let definitionID = try c.decodeIfPresent(UUID.self, forKey: .definitionID)
     let definitionSnapshotDate = try c.decodeIfPresent(Date.self, forKey: .definitionSnapshotDate)
     self.init(
@@ -492,6 +524,7 @@ extension EncounterSession: @MainActor Codable {
       environmentSlots: environmentSlots,
       fearPool: fearPool, hopePool: hopePool,
       spotlightedSlotID: spotlightedSlotID, spotlightCount: spotlightCount, gmNotes: gmNotes,
+      phase: phase,
       definitionID: definitionID, definitionSnapshotDate: definitionSnapshotDate
     )
   }
