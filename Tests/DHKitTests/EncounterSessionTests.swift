@@ -555,6 +555,13 @@ import Testing
     #expect(session.adversarySlots[1].customName == "Ironguard Soldier 1")
     #expect(session.adversarySlots[2].customName == "Ironguard Soldier 2")
   }
+
+  @Test func sessionMadeFromDefinitionStartsRunning() {
+    let compendium = makeCompendium()
+    let def = EncounterDefinition(name: "Phase Test")
+    let session = EncounterSession.make(from: def, using: compendium)
+    #expect(session.phase == .running)
+  }
 }
 
 // MARK: - EncounterSession Codable
@@ -603,6 +610,75 @@ import Testing
     let session = EncounterSession(name: "Ad-hoc Encounter")
     #expect(session.definitionID == nil)
     #expect(session.definitionSnapshotDate == nil)
+  }
+}
+
+// MARK: - SessionPhase
+
+@MainActor struct SessionPhaseTests {
+
+  @Test func newSessionPhaseIsRunning() {
+    let session = EncounterSession(name: "Test")
+    #expect(session.phase == .running)
+  }
+
+  @Test func pauseSetsPhase() {
+    let session = EncounterSession(name: "Test")
+    session.pause()
+    #expect(session.phase == .paused)
+  }
+
+  @Test func resumeSetsPhase() {
+    let session = EncounterSession(name: "Test", phase: .paused)
+    session.resume()
+    #expect(session.phase == .running)
+  }
+
+  @Test func pauseIsIdempotent() {
+    let session = EncounterSession(name: "Test")
+    session.pause()
+    session.pause()
+    #expect(session.phase == .paused)
+  }
+
+  @Test func resumeIsIdempotent() {
+    let session = EncounterSession(name: "Test")
+    session.resume()
+    #expect(session.phase == .running)
+  }
+
+  @Test func phaseRoundTripsViaCodable() throws {
+    let session = EncounterSession(name: "Test")
+    session.pause()
+
+    let data = try JSONEncoder().encode(session)
+    let decoded = try JSONDecoder().decode(EncounterSession.self, from: data)
+
+    #expect(decoded.phase == .paused)
+  }
+
+  @Test func missingPhaseKeyDecodesAsRunning() throws {
+    // JSON from before SessionPhase was added — must not break existing saved sessions.
+    let json = """
+      {"id":"\(UUID().uuidString)","name":"Legacy","adversarySlots":[],"playerSlots":[],\
+      "environmentSlots":[],"fearPool":0,"hopePool":0,"spotlightCount":0,"gmNotes":""}
+      """
+    let data = json.data(using: .utf8)!
+    let decoded = try JSONDecoder().decode(EncounterSession.self, from: data)
+    #expect(decoded.phase == .running)
+  }
+
+  @Test func unknownFuturePhaseValueDecodesAsRunning() throws {
+    // A session saved by a newer app version with an unknown phase case must not
+    // crash an older client — it should fall back to .running.
+    let json = """
+      {"id":"\(UUID().uuidString)","name":"Future","adversarySlots":[],"playerSlots":[],\
+      "environmentSlots":[],"fearPool":0,"hopePool":0,"spotlightCount":0,\
+      "gmNotes":"","phase":"completed"}
+      """
+    let data = json.data(using: .utf8)!
+    let decoded = try JSONDecoder().decode(EncounterSession.self, from: data)
+    #expect(decoded.phase == .running)
   }
 }
 
