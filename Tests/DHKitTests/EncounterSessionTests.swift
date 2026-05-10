@@ -663,7 +663,7 @@ import Testing
       {"id":"\(UUID().uuidString)","name":"Legacy","adversarySlots":[],"playerSlots":[],\
       "environmentSlots":[],"fearPool":0,"hopePool":0,"spotlightCount":0,"gmNotes":""}
       """
-    let data = json.data(using: .utf8)!
+    let data = try #require(json.data(using: .utf8))
     let decoded = try JSONDecoder().decode(EncounterSession.self, from: data)
     #expect(decoded.phase == .running)
   }
@@ -676,7 +676,7 @@ import Testing
       "environmentSlots":[],"fearPool":0,"hopePool":0,"spotlightCount":0,\
       "gmNotes":"","phase":"completed"}
       """
-    let data = json.data(using: .utf8)!
+    let data = try #require(json.data(using: .utf8))
     let decoded = try JSONDecoder().decode(EncounterSession.self, from: data)
     #expect(decoded.phase == .running)
   }
