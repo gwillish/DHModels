@@ -28,9 +28,16 @@ import Observation
 // MARK: - SessionPhase
 
 /// The lifecycle phase of a live encounter session.
-public enum SessionPhase: String, Codable, Sendable {
+public enum SessionPhase: String, Sendable {
   case running
   case paused
+}
+
+extension SessionPhase: Codable {
+  public init(from decoder: any Decoder) throws {
+    let raw = try decoder.singleValueContainer().decode(String.self)
+    self = SessionPhase(rawValue: raw) ?? .running
+  }
 }
 
 // MARK: - EncounterSession
@@ -108,8 +115,6 @@ public final class EncounterSession: Identifiable, Hashable {
   /// Running total of spotlight grants in this encounter.
   public var spotlightCount: Int
 
-  // MARK: Lifecycle
-
   /// The current lifecycle phase of this session.
   public private(set) var phase: SessionPhase
 
@@ -158,11 +163,13 @@ public final class EncounterSession: Identifiable, Hashable {
 
   /// Pause this session. The session persists and can be resumed later.
   public func pause() {
+    guard phase != .paused else { return }
     phase = .paused
   }
 
   /// Resume a paused session.
   public func resume() {
+    guard phase != .running else { return }
     phase = .running
   }
 
@@ -513,9 +520,7 @@ extension EncounterSession: @MainActor Codable {
     let spotlightedSlotID = try c.decodeIfPresent(UUID.self, forKey: .spotlightedSlotID)
     let spotlightCount = try c.decode(Int.self, forKey: .spotlightCount)
     let gmNotes = try c.decode(String.self, forKey: .gmNotes)
-    let phase =
-      (try c.decodeIfPresent(String.self, forKey: .phase))
-      .flatMap(SessionPhase.init(rawValue:)) ?? .running
+    let phase = try c.decodeIfPresent(SessionPhase.self, forKey: .phase) ?? .running
     let definitionID = try c.decodeIfPresent(UUID.self, forKey: .definitionID)
     let definitionSnapshotDate = try c.decodeIfPresent(Date.self, forKey: .definitionSnapshotDate)
     self.init(
